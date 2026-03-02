@@ -165,8 +165,13 @@ enum AccessibilityID {
   static let buttonDeselectAll = "history.button.deselectAll"
   static let buttonAnalyze = "history.button.analyze"
   static let buttonExport = "history.button.export"
+  static let buttonPin = "history.button.pin"
   static let buttonDelete = "history.button.delete"
   static let list = "history.list"
+  static let buttonMetadataPin = "history.button.metadataPin"
+  static let buttonRevealAudioFile = "history.button.revealAudioFile"
+  static let buttonRevealStore = "history.button.revealStore"
+  static let buttonExportEntry = "history.button.exportEntry"
  }
 
  // MARK: - Audio Transcribe

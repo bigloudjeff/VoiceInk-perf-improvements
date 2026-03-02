@@ -7,6 +7,7 @@ struct TranscriptionHistoryView: View {
     @State private var selectedTranscription: Transcription?
     @State private var selectedTranscriptions: Set<Transcription> = []
     @State private var showDeleteConfirmation = false
+    @State private var showPinnedDeletionAlert = false
     @State private var isViewCurrentlyVisible = false
     @State private var showAnalysisView = false
     @State private var isLeftSidebarVisible = true
@@ -162,6 +163,12 @@ struct TranscriptionHistoryView: View {
             Button("Cancel", role: .cancel) {}
         } message: {
             Text("This action cannot be undone. Are you sure you want to delete \(selectedTranscriptions.count) item\(selectedTranscriptions.count == 1 ? "" : "s")?")
+        }
+        .alert("Pinned Items Cannot Be Deleted", isPresented: $showPinnedDeletionAlert) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            let pinnedCount = selectedTranscriptions.filter(\.isPinned).count
+            Text("\(pinnedCount) pinned item\(pinnedCount == 1 ? "" : "s") in the selection. Unpin them first to delete.")
         }
         .sheet(isPresented: $showAnalysisView) {
             if !selectedTranscriptions.isEmpty {
@@ -447,6 +454,15 @@ struct TranscriptionHistoryView: View {
                 Divider()
                     .frame(height: 16)
 
+                Button(action: { togglePinForSelected() }) {
+                    Image(systemName: selectedTranscriptions.allSatisfy(\.isPinned) ? "pin.slash" : "pin.fill")
+                        .font(.system(size: 14, weight: .regular))
+                        .foregroundColor(.secondary)
+                }
+                .buttonStyle(.plain)
+                .help(selectedTranscriptions.allSatisfy(\.isPinned) ? "Unpin" : "Pin")
+                .accessibilityIdentifier(AccessibilityID.History.buttonPin)
+
                 Button(action: { showAnalysisView = true }) {
                     Image(systemName: "chart.bar.xaxis")
                         .font(.system(size: 14, weight: .regular))
@@ -595,6 +611,11 @@ struct TranscriptionHistoryView: View {
     }
 
     private func deleteSelectedTranscriptions() {
+        let pinnedCount = selectedTranscriptions.filter(\.isPinned).count
+        if pinnedCount > 0 {
+            showPinnedDeletionAlert = true
+            return
+        }
         for transcription in selectedTranscriptions {
             performDeletion(for: transcription)
         }
@@ -603,6 +624,14 @@ struct TranscriptionHistoryView: View {
         Task {
             await saveAndReload()
         }
+    }
+
+    private func togglePinForSelected() {
+        let allPinned = selectedTranscriptions.allSatisfy(\.isPinned)
+        for transcription in selectedTranscriptions {
+            transcription.isPinned = !allPinned
+        }
+        try? modelContext.save()
     }
     
     private func toggleSelection(_ transcription: Transcription) {

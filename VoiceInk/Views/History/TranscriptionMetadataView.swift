@@ -1,7 +1,10 @@
 import SwiftUI
+import SwiftData
 
 struct TranscriptionMetadataView: View {
+    @Environment(\.modelContext) private var modelContext
     let transcription: Transcription
+    private let entryExportService = TranscriptionEntryExportService()
 
     var body: some View {
         ScrollView {
@@ -10,6 +13,33 @@ struct TranscriptionMetadataView: View {
                     .font(.system(size: 14, weight: .semibold))
 
                 VStack(alignment: .leading, spacing: 8) {
+                    HStack(spacing: 8) {
+                        Image(systemName: "pin.fill")
+                            .font(.system(size: 11, weight: .medium))
+                            .foregroundColor(.secondary)
+                            .frame(width: 20, height: 20)
+
+                        Text("Pinned")
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundColor(.secondary)
+
+                        Spacer(minLength: 0)
+
+                        Button(action: {
+                            transcription.isPinned.toggle()
+                            try? modelContext.save()
+                        }) {
+                            Image(systemName: transcription.isPinned ? "pin.fill" : "pin")
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundColor(transcription.isPinned ? .accentColor : .secondary)
+                        }
+                        .buttonStyle(.plain)
+                        .help(transcription.isPinned ? "Unpin" : "Pin")
+                        .accessibilityIdentifier(AccessibilityID.History.buttonMetadataPin)
+                    }
+
+                    Divider()
+
                     metadataRow(
                         icon: "calendar",
                         label: "Date",
@@ -80,12 +110,81 @@ struct TranscriptionMetadataView: View {
                             value: powerModeValue
                         )
                     }
+
+                    if let urlString = transcription.audioFileURL,
+                       let audioURL = URL(string: urlString),
+                       FileManager.default.fileExists(atPath: audioURL.path) {
+                        Divider()
+                        HStack(spacing: 8) {
+                            Image(systemName: "waveform")
+                                .font(.system(size: 11, weight: .medium))
+                                .foregroundColor(.secondary)
+                                .frame(width: 20, height: 20)
+                            Text("Audio File")
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundColor(.secondary)
+                            Spacer(minLength: 0)
+                            Button(action: {
+                                NSWorkspace.shared.activateFileViewerSelecting([audioURL])
+                            }) {
+                                Image(systemName: "arrow.up.forward.square")
+                                    .font(.system(size: 12, weight: .medium))
+                                    .foregroundColor(.secondary)
+                            }
+                            .buttonStyle(.plain)
+                            .help("Show in Finder")
+                            .accessibilityIdentifier(AccessibilityID.History.buttonRevealAudioFile)
+                        }
+                    }
+
+                    Divider()
+                    HStack(spacing: 8) {
+                        Image(systemName: "cylinder")
+                            .font(.system(size: 11, weight: .medium))
+                            .foregroundColor(.secondary)
+                            .frame(width: 20, height: 20)
+                        Text("Transcription Store")
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundColor(.secondary)
+                        Spacer(minLength: 0)
+                        Button(action: {
+                            let storeURL = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+                                .appendingPathComponent("com.prakashjoshipax.VoiceInk")
+                                .appendingPathComponent("default.store")
+                            NSWorkspace.shared.activateFileViewerSelecting([storeURL])
+                        }) {
+                            Image(systemName: "arrow.up.forward.square")
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundColor(.secondary)
+                        }
+                        .buttonStyle(.plain)
+                        .help("Show in Finder")
+                        .accessibilityIdentifier(AccessibilityID.History.buttonRevealStore)
+                    }
                 }
                 .padding(14)
                 .background(
                     RoundedRectangle(cornerRadius: 12, style: .continuous)
                         .fill(.thinMaterial)
                 )
+
+                Button(action: {
+                    entryExportService.exportEntry(transcription)
+                }) {
+                    HStack {
+                        Image(systemName: "square.and.arrow.up")
+                        Text("Export Entry")
+                    }
+                    .font(.system(size: 12, weight: .medium))
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 8)
+                }
+                .buttonStyle(.plain)
+                .background(
+                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                        .fill(.thinMaterial)
+                )
+                .accessibilityIdentifier(AccessibilityID.History.buttonExportEntry)
 
                 if transcription.aiRequestSystemMessage != nil || transcription.aiRequestUserMessage != nil {
                     VStack(alignment: .leading, spacing: 12) {

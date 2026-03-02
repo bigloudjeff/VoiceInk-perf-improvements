@@ -25,6 +25,7 @@ final class Transcription {
     var powerModeName: String?
     var powerModeEmoji: String?
     var transcriptionStatus: String?
+    var isPinned: Bool = false
 
     init(text: String,
          duration: TimeInterval,

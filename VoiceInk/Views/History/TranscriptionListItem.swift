@@ -22,6 +22,11 @@ struct TranscriptionListItem: View {
                         .font(.system(size: 11, weight: .medium))
                         .foregroundColor(.secondary)
                     Spacer()
+                    if transcription.isPinned {
+                        Image(systemName: "pin.fill")
+                            .font(.system(size: 9, weight: .medium))
+                            .foregroundColor(.accentColor)
+                    }
                     if transcription.duration > 0 {
                         Text(transcription.duration.formatTiming())
                             .font(.system(size: 10, weight: .medium))

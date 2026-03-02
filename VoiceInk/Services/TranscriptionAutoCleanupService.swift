@@ -105,7 +105,8 @@ class TranscriptionAutoCleanupService {
 
             let descriptor = FetchDescriptor<Transcription>(
                 predicate: #Predicate<Transcription> { transcription in
-                    transcription.timestamp < cutoffDate
+                    transcription.timestamp < cutoffDate &&
+                    !transcription.isPinned
                 }
             )
             let items = try backgroundContext.fetch(descriptor)
