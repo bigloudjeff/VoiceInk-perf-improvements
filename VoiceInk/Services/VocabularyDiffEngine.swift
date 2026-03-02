@@ -58,6 +58,7 @@ struct VocabularyDiffEngine {
     let original = String(substring)
     let normalized = original
      .lowercased()
+     .folding(options: .diacriticInsensitive, locale: nil)
      .trimmingCharacters(in: .punctuationCharacters)
     let cleaned = original
      .trimmingCharacters(in: .punctuationCharacters)

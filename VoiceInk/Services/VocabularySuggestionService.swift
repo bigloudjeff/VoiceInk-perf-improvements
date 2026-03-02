@@ -91,6 +91,14 @@ class VocabularySuggestionService: NSObject {
     vocabLookup = [:]
    }
 
+   // Build suggestion lookup once (O(n) instead of O(n*m))
+   let suggestionDescriptor = FetchDescriptor<VocabularySuggestion>()
+   let allSuggestions = (try? context.fetch(suggestionDescriptor)) ?? []
+   var suggestionLookup: [String: VocabularySuggestion] = [:]
+   for suggestion in allSuggestions {
+    suggestionLookup[suggestion.correctedPhrase.lowercased()] = suggestion
+   }
+
    var didInsertOrUpdate = false
 
    for candidate in candidates {
@@ -113,12 +121,7 @@ class VocabularySuggestionService: NSObject {
 
     // Check for existing suggestion with same corrected phrase
     let correctedLower = candidate.correctedPhrase.lowercased()
-    let suggestionDescriptor = FetchDescriptor<VocabularySuggestion>()
-    let existingSuggestions = (try? context.fetch(suggestionDescriptor)) ?? []
-
-    let matchingSuggestion = existingSuggestions.first {
-     $0.correctedPhrase.lowercased() == correctedLower
-    }
+    let matchingSuggestion = suggestionLookup[correctedLower]
 
     if let existing = matchingSuggestion {
      if existing.status == "dismissed" {
@@ -134,6 +137,7 @@ class VocabularySuggestionService: NSObject {
       rawPhrase: candidate.rawPhrase
      )
      context.insert(suggestion)
+     suggestionLookup[correctedLower] = suggestion
      didInsertOrUpdate = true
     }
    }

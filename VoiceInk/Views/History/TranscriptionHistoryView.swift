@@ -289,15 +289,28 @@ struct TranscriptionHistoryView: View {
 
             ZStack(alignment: .bottom) {
                 if filteredTranscriptions.isEmpty && !isLoading {
-                    VStack(spacing: 12) {
-                        Image(systemName: "doc.text.magnifyingglass")
-                            .font(.system(size: 40))
-                            .foregroundColor(.secondary)
-                        Text("No transcriptions")
-                            .font(.system(size: 14, weight: .medium))
-                            .foregroundColor(.secondary)
+                    if hasMoreContent && (selectedPowerMode != nil || selectedModelName != nil) {
+                        VStack(spacing: 12) {
+                            ProgressView().controlSize(.small)
+                            Text("Searching...")
+                                .font(.system(size: 13))
+                                .foregroundColor(.secondary)
+                        }
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .task {
+                            await loadUntilFilteredResultsOrExhausted()
+                        }
+                    } else {
+                        VStack(spacing: 12) {
+                            Image(systemName: "doc.text.magnifyingglass")
+                                .font(.system(size: 40))
+                                .foregroundColor(.secondary)
+                            Text("No transcriptions")
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundColor(.secondary)
+                        }
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
                     }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
                     ScrollView {
                         LazyVStack(spacing: 8, pinnedViews: .sectionHeaders) {
@@ -515,6 +528,14 @@ struct TranscriptionHistoryView: View {
         }
     }
     
+    @MainActor
+    private func loadUntilFilteredResultsOrExhausted() async {
+        while filteredTranscriptions.isEmpty && hasMoreContent {
+            guard !isLoading else { return }
+            await loadMoreContent()
+        }
+    }
+
     @MainActor
     private func resetPagination() {
         displayedTranscriptions = []

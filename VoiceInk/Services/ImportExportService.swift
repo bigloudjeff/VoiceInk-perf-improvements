@@ -235,7 +235,19 @@ class ImportExportService {
                 do {
                     let jsonData = try Data(contentsOf: url)
                     let decoder = JSONDecoder()
-                    decoder.dateDecodingStrategy = .iso8601
+                    decoder.dateDecodingStrategy = .custom { decoder in
+                        let container = try decoder.singleValueContainer()
+                        // Try ISO8601 string first (current export format)
+                        if let dateString = try? container.decode(String.self),
+                           let date = ISO8601DateFormatter().date(from: dateString) {
+                            return date
+                        }
+                        // Fall back to seconds-since-epoch (older exports)
+                        if let timestamp = try? container.decode(Double.self) {
+                            return Date(timeIntervalSinceReferenceDate: timestamp)
+                        }
+                        throw DecodingError.dataCorruptedError(in: container, debugDescription: "Unable to decode date")
+                    }
                     let importedSettings = try decoder.decode(VoiceInkExportedSettings.self, from: jsonData)
                     
                     if importedSettings.version != self.currentSettingsVersion {
