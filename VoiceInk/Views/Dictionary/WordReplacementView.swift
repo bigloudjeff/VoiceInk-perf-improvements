@@ -86,6 +86,7 @@ struct WordReplacementView: View {
                 TextField("Original text (use commas for multiple)", text: $originalWord)
                     .textFieldStyle(.roundedBorder)
                     .font(.system(size: 13))
+                    .accessibilityIdentifier(AccessibilityID.WordReplacement.fieldOriginal)
 
                 Image(systemName: "arrow.right")
                     .foregroundColor(.secondary)
@@ -95,6 +96,7 @@ struct WordReplacementView: View {
                 TextField("Replacement text", text: $replacementWord)
                     .textFieldStyle(.roundedBorder)
                     .font(.system(size: 13))
+                    .accessibilityIdentifier(AccessibilityID.WordReplacement.fieldReplacement)
                     .onSubmit { addReplacement() }
 
                 if shouldShowAddButton {
@@ -105,6 +107,7 @@ struct WordReplacementView: View {
                             .font(.system(size: 16, weight: .semibold))
                     }
                     .buttonStyle(.borderless)
+                    .accessibilityIdentifier(AccessibilityID.WordReplacement.buttonAdd)
                     .disabled(originalWord.isEmpty || replacementWord.isEmpty)
                     .help("Add word replacement")
                 }
@@ -129,6 +132,7 @@ struct WordReplacementView: View {
                             .frame(maxWidth: .infinity, alignment: .leading)
                         }
                         .buttonStyle(.plain)
+                        .accessibilityIdentifier(AccessibilityID.WordReplacement.buttonSortOriginal)
                         .help("Sort by original")
 
                         Image(systemName: "arrow.right")
@@ -151,6 +155,7 @@ struct WordReplacementView: View {
                             .frame(maxWidth: .infinity, alignment: .leading)
                         }
                         .buttonStyle(.plain)
+                        .accessibilityIdentifier(AccessibilityID.WordReplacement.buttonSortReplacement)
                         .help("Sort by replacement")
                     }
                     .padding(.horizontal, 4)

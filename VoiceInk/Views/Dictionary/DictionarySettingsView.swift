@@ -82,6 +82,7 @@ struct DictionarySettingsView: View {
                             .foregroundColor(.blue)
                     }
                     .buttonStyle(.plain)
+                    .accessibilityIdentifier(AccessibilityID.Dictionary.buttonImport)
                     .help("Import vocabulary and word replacements")
 
                     Button(action: {
@@ -92,6 +93,7 @@ struct DictionarySettingsView: View {
                             .foregroundColor(.blue)
                     }
                     .buttonStyle(.plain)
+                    .accessibilityIdentifier(AccessibilityID.Dictionary.buttonExport)
                     .help("Export vocabulary and word replacements")
                 }
             }
@@ -153,5 +155,6 @@ struct SectionCard: View {
             .background(CardBackground(isSelected: isSelected))
         }
         .buttonStyle(.plain)
+        .accessibilityIdentifier("dictionary.tab.\(section.rawValue)")
     }
-} 
+}

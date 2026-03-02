@@ -145,12 +145,14 @@ struct TranscriptionHistoryView: View {
                 Button(action: { withAnimation { isLeftSidebarVisible.toggle() } }) {
                     Label("Toggle Sidebar", systemImage: "sidebar.left")
                 }
+                .accessibilityIdentifier(AccessibilityID.History.buttonToggleLeftSidebar)
             }
 
             ToolbarItemGroup(placement: .automatic) {
                 Button(action: { withAnimation { isRightSidebarVisible.toggle() } }) {
                     Label("Toggle Inspector", systemImage: "sidebar.right")
                 }
+                .accessibilityIdentifier(AccessibilityID.History.buttonToggleRightSidebar)
             }
         }
         .alert("Delete Selected Items?", isPresented: $showDeleteConfirmation) {
@@ -201,6 +203,7 @@ struct TranscriptionHistoryView: View {
                 TextField("Search transcriptions", text: $searchText)
                     .textFieldStyle(PlainTextFieldStyle())
                     .font(.system(size: 13))
+                    .accessibilityIdentifier(AccessibilityID.History.fieldSearch)
             }
             .padding(10)
             .background(
@@ -234,6 +237,7 @@ struct TranscriptionHistoryView: View {
                             )
                         }
                         .buttonStyle(.plain)
+                        .accessibilityIdentifier(AccessibilityID.History.menuPowerModeFilter)
                     }
 
                     if !availableModelNames.isEmpty {
@@ -259,6 +263,7 @@ struct TranscriptionHistoryView: View {
                             )
                         }
                         .buttonStyle(.plain)
+                        .accessibilityIdentifier(AccessibilityID.History.menuModelFilter)
                     }
 
                     if selectedPowerMode != nil || selectedModelName != nil {
@@ -271,6 +276,7 @@ struct TranscriptionHistoryView: View {
                                 .foregroundColor(.secondary)
                         }
                         .buttonStyle(.plain)
+                        .accessibilityIdentifier(AccessibilityID.History.buttonClearFilters)
                     }
 
                     Spacer()
@@ -415,6 +421,7 @@ struct TranscriptionHistoryView: View {
                 .buttonStyle(.plain)
                 .font(.system(size: 13))
                 .foregroundColor(.secondary)
+                .accessibilityIdentifier(AccessibilityID.History.buttonSelectAll)
             } else {
                 Button("Deselect All") {
                     selectedTranscriptions.removeAll()
@@ -422,6 +429,7 @@ struct TranscriptionHistoryView: View {
                 .buttonStyle(.plain)
                 .font(.system(size: 13))
                 .foregroundColor(.secondary)
+                .accessibilityIdentifier(AccessibilityID.History.buttonDeselectAll)
 
                 Divider()
                     .frame(height: 16)
@@ -433,6 +441,7 @@ struct TranscriptionHistoryView: View {
                 }
                 .buttonStyle(.plain)
                 .help("Analyze")
+                .accessibilityIdentifier(AccessibilityID.History.buttonAnalyze)
 
                 Button(action: {
                     exportService.exportTranscriptionsToCSV(transcriptions: Array(selectedTranscriptions))
@@ -443,6 +452,7 @@ struct TranscriptionHistoryView: View {
                 }
                 .buttonStyle(.plain)
                 .help("Export")
+                .accessibilityIdentifier(AccessibilityID.History.buttonExport)
 
                 Button(action: { showDeleteConfirmation = true }) {
                     Image(systemName: "trash")
@@ -451,6 +461,7 @@ struct TranscriptionHistoryView: View {
                 }
                 .buttonStyle(.plain)
                 .help("Delete")
+                .accessibilityIdentifier(AccessibilityID.History.buttonDelete)
             }
 
             Spacer()

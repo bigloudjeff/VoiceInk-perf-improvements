@@ -44,6 +44,7 @@ struct VocabularySuggestionsView: View {
        }
       }
       .buttonStyle(.borderless)
+      .accessibilityIdentifier(AccessibilityID.Suggestions.buttonDismissAll)
       .foregroundColor(.secondary)
 
       Button(action: approveAll) {
@@ -55,6 +56,7 @@ struct VocabularySuggestionsView: View {
        }
       }
       .buttonStyle(.borderless)
+      .accessibilityIdentifier(AccessibilityID.Suggestions.buttonAddAll)
       .foregroundColor(.blue)
      }
 

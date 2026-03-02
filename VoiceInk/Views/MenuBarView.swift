@@ -18,6 +18,7 @@ struct MenuBarView: View {
             Button("Toggle Recorder") {
                 whisperState.handleToggleMiniRecorder()
             }
+            .accessibilityIdentifier(AccessibilityID.MenuBar.buttonToggleRecorder)
 
             Divider()
 
@@ -42,6 +43,7 @@ struct MenuBarView: View {
                 Button("Manage Models") {
                     menuBarManager.openMainWindowAndNavigate(to: "AI Models")
                 }
+                .accessibilityIdentifier(AccessibilityID.MenuBar.buttonManageModels)
             } label: {
                 HStack {
                     Text("Transcription Model: \(whisperState.currentTranscriptionModel?.displayName ?? "None")")
@@ -49,10 +51,12 @@ struct MenuBarView: View {
                         .font(.system(size: 10))
                 }
             }
-            
+            .accessibilityIdentifier(AccessibilityID.MenuBar.menuTranscriptionModel)
+
             Divider()
             
             Toggle("AI Enhancement", isOn: $enhancementService.isEnhancementEnabled)
+            .accessibilityIdentifier(AccessibilityID.MenuBar.toggleAIEnhancement)
             
             Menu {
                 ForEach(enhancementService.allPrompts) { prompt in
@@ -77,7 +81,8 @@ struct MenuBarView: View {
                         .font(.system(size: 10))
                 }
             }
-            
+            .accessibilityIdentifier(AccessibilityID.MenuBar.menuPrompt)
+
             Menu {
                 ForEach(aiService.connectedProviders, id: \.self) { provider in
                     Button {
@@ -103,7 +108,8 @@ struct MenuBarView: View {
                         .font(.system(size: 10))
                 }
             }
-            
+            .accessibilityIdentifier(AccessibilityID.MenuBar.menuAIProvider)
+
             Menu {
                 ForEach(aiService.availableModels, id: \.self) { model in
                     Button {
@@ -129,7 +135,8 @@ struct MenuBarView: View {
                         .font(.system(size: 10))
                 }
             }
-            
+            .accessibilityIdentifier(AccessibilityID.MenuBar.menuAIModel)
+
             LanguageSelectionView(whisperState: whisperState, displayMode: .menuItem, whisperPrompt: whisperState.whisperPrompt)
 
             Menu {
@@ -157,6 +164,7 @@ struct MenuBarView: View {
                         .font(.system(size: 10))
                 }
             }
+            .accessibilityIdentifier(AccessibilityID.MenuBar.menuAudioInput)
 
             Menu("Additional") {
                 Button {
@@ -185,6 +193,7 @@ struct MenuBarView: View {
                     }
                 }
             }
+            .accessibilityIdentifier(AccessibilityID.MenuBar.menuAdditional)
             .id("additional-menu-\(menuRefreshTrigger)")
             
             Divider()
@@ -192,32 +201,39 @@ struct MenuBarView: View {
             Button("Retry Last Transcription") {
                 LastTranscriptionService.retryLastTranscription(from: whisperState.modelContext, whisperState: whisperState)
             }
+            .accessibilityIdentifier(AccessibilityID.MenuBar.buttonRetryLastTranscription)
             
             Button("Copy Last Transcription") {
                 LastTranscriptionService.copyLastTranscription(from: whisperState.modelContext)
             }
+            .accessibilityIdentifier(AccessibilityID.MenuBar.buttonCopyLastTranscription)
             .keyboardShortcut("c", modifiers: [.command, .shift])
 
             Button("Type Last Transcription") {
                 LastTranscriptionService.typeLastTranscription(from: whisperState.modelContext)
             }
+            .accessibilityIdentifier(AccessibilityID.MenuBar.buttonTypeLastTranscription)
             
             Button("History") {
                 menuBarManager.openHistoryWindow()
             }
+            .accessibilityIdentifier(AccessibilityID.MenuBar.buttonHistory)
             .keyboardShortcut("h", modifiers: [.command, .shift])
             
             Button("Settings") {
                 menuBarManager.openMainWindowAndNavigate(to: "Settings")
             }
+            .accessibilityIdentifier(AccessibilityID.MenuBar.buttonSettings)
             .keyboardShortcut(",", modifiers: .command)
             
             Button(menuBarManager.isMenuBarOnly ? "Show Dock Icon" : "Hide Dock Icon") {
                 menuBarManager.toggleMenuBarOnly()
             }
+            .accessibilityIdentifier(AccessibilityID.MenuBar.buttonToggleDockIcon)
             .keyboardShortcut("d", modifiers: [.command, .shift])
             
             Toggle("Launch at Login", isOn: $launchAtLoginEnabled)
+                .accessibilityIdentifier(AccessibilityID.MenuBar.toggleLaunchAtLogin)
                 .onChange(of: launchAtLoginEnabled) { oldValue, newValue in
                     LaunchAtLogin.isEnabled = newValue
                 }
@@ -227,17 +243,20 @@ struct MenuBarView: View {
             Button("Check for Updates") {
                 updaterViewModel.checkForUpdates()
             }
+            .accessibilityIdentifier(AccessibilityID.MenuBar.buttonCheckForUpdates)
             .disabled(!updaterViewModel.canCheckForUpdates)
             
             Button("Help and Support") {
                 EmailSupport.openSupportEmail()
             }
+            .accessibilityIdentifier(AccessibilityID.MenuBar.buttonHelpAndSupport)
             
             Divider()
 
             Button("Quit VoiceInk") {
                 NSApplication.shared.terminate(nil)
             }
+            .accessibilityIdentifier(AccessibilityID.MenuBar.buttonQuit)
         }
     }
 }

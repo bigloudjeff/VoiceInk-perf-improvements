@@ -288,22 +288,6 @@ class AIEnhancementService: ObservableObject {
             }
         }
 
-        if aiService.selectedProvider == .local {
-            // Auto-start server if not running
-            _ = await aiService.startLocalMLXServer()
-            do {
-                let result = try await LocalMLXClient.chatCompletion(
-                    baseURL: aiService.selectedProvider.baseURL,
-                    model: aiService.currentModel,
-                    text: formattedText,
-                    systemPrompt: systemMessage
-                )
-                return AIEnhancementOutputFilter.filter(result.trimmingCharacters(in: .whitespacesAndNewlines))
-            } catch {
-                throw EnhancementError.customError(error.localizedDescription)
-            }
-        }
-
         try await waitForRateLimit()
 
         do {
@@ -435,22 +419,6 @@ class AIEnhancementService: ObservableObject {
                 } else {
                     throw EnhancementError.customError(error.localizedDescription)
                 }
-            }
-        }
-
-        if aiService.selectedProvider == .local {
-            _ = await aiService.startLocalMLXServer()
-            do {
-                let result = try await LocalMLXClient.chatCompletion(
-                    baseURL: aiService.selectedProvider.baseURL,
-                    model: aiService.currentModel,
-                    text: userMessage,
-                    systemPrompt: systemMessage,
-                    timeout: baseTimeout
-                )
-                return AIEnhancementOutputFilter.filter(result.trimmingCharacters(in: .whitespacesAndNewlines))
-            } catch {
-                throw EnhancementError.customError(error.localizedDescription)
             }
         }
 

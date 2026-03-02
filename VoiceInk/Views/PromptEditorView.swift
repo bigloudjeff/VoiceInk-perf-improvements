@@ -82,6 +82,7 @@ struct PromptEditorView: View {
                         .clipShape(Circle())
                 }
                 .buttonStyle(.plain)
+                .accessibilityIdentifier(AccessibilityID.PromptEditor.buttonClose)
                 .help("Close")
             }
             .padding(.horizontal, 20)
@@ -125,6 +126,7 @@ struct PromptEditorView: View {
                                         )
                                 }
                                 .buttonStyle(.plain)
+                                .accessibilityIdentifier(AccessibilityID.PromptEditor.buttonIconPicker)
                                 .popover(isPresented: $showingIconPicker, arrowEdge: .bottom) {
                                     IconPickerPopover(selectedIcon: $selectedIcon, isPresented: $showingIconPicker)
                                 }
@@ -143,6 +145,7 @@ struct PromptEditorView: View {
                                                 .stroke(Color.secondary.opacity(0.2), lineWidth: 1)
                                                 .background(Color(NSColor.controlBackgroundColor).cornerRadius(6))
                                         )
+                                        .accessibilityIdentifier(AccessibilityID.PromptEditor.fieldTitle)
                                 }
                             }
                             
@@ -160,6 +163,7 @@ struct PromptEditorView: View {
                                             .stroke(Color.secondary.opacity(0.2), lineWidth: 1)
                                             .background(Color(NSColor.controlBackgroundColor).cornerRadius(6))
                                     )
+                                    .accessibilityIdentifier(AccessibilityID.PromptEditor.fieldDescription)
                             }
                             
                             Divider().padding(.vertical, 4)
@@ -180,6 +184,7 @@ struct PromptEditorView: View {
                                             RoundedRectangle(cornerRadius: 6)
                                                 .stroke(Color.secondary.opacity(0.2), lineWidth: 1)
                                         )
+                                        .accessibilityIdentifier(AccessibilityID.PromptEditor.editorInstructions)
                                     
                                     if promptText.isEmpty {
                                         Text("Enter your custom prompt instructions here...")
@@ -196,6 +201,7 @@ struct PromptEditorView: View {
                                         Toggle("Use System Template", isOn: $useSystemInstructions)
                                             .toggleStyle(.switch)
                                             .controlSize(.small)
+                                            .accessibilityIdentifier(AccessibilityID.PromptEditor.toggleUseSystemTemplate)
                                         
                                         InfoTip("If enabled, your instructions are combined with a general-purpose template to improve transcription quality.\n\nDisable for full control over the AI's system prompt (for advanced users).")
                                     }
@@ -269,6 +275,7 @@ struct PromptEditorView: View {
                     .keyboardShortcut(.escape, modifiers: [])
                     .buttonStyle(.plain)
                     .foregroundColor(.secondary)
+                    .accessibilityIdentifier(AccessibilityID.PromptEditor.buttonCancel)
                     
                     Spacer()
                     
@@ -283,6 +290,7 @@ struct PromptEditorView: View {
                         Text("Save Changes")
                             .frame(minWidth: 100)
                     }
+                    .accessibilityIdentifier(AccessibilityID.PromptEditor.buttonSave)
                     .buttonStyle(.borderedProminent)
                     .disabled(isEditingPredefinedPrompt ? false : (title.isEmpty || promptText.isEmpty))
                     .keyboardShortcut(.return, modifiers: .command)

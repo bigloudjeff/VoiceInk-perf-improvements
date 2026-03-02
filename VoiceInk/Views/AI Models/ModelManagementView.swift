@@ -68,6 +68,7 @@ struct ModelManagementView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(CardBackground(isSelected: false))
         .cornerRadius(10)
+        .accessibilityIdentifier(AccessibilityID.Models.labelDefaultModel)
     }
     
     private var languageSelectionSection: some View {
@@ -96,9 +97,10 @@ struct ModelManagementView: View {
                                 )
                         }
                         .buttonStyle(PlainButtonStyle())
+                        .accessibilityIdentifier(AccessibilityID.Models.filterTab(filter.rawValue))
                     }
                 }
-                
+
                 Spacer()
                 
                 Button(action: {
@@ -115,6 +117,7 @@ struct ModelManagementView: View {
                         )
                 }
                 .buttonStyle(PlainButtonStyle())
+                .accessibilityIdentifier(AccessibilityID.Models.buttonSettings)
             }
             .padding(.bottom, 12)
             
@@ -186,6 +189,7 @@ struct ModelManagementView: View {
                                 .cornerRadius(10)
                             }
                             .buttonStyle(.plain)
+                            .accessibilityIdentifier(AccessibilityID.Models.buttonImportLocal)
 
                             InfoTip(
                                 "Add a custom fine-tuned whisper model to use with VoiceInk. Select the downloaded .bin file.",

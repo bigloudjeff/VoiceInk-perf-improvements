@@ -72,6 +72,7 @@ struct AudioTranscribeView: View {
                             HStack(spacing: 16) {
                                 Toggle("AI Enhancement", isOn: $isEnhancementEnabled)
                                     .toggleStyle(.switch)
+                                    .accessibilityIdentifier(AccessibilityID.AudioTranscribe.toggleAIEnhancement)
                                     .onChange(of: isEnhancementEnabled) { oldValue, newValue in
                                         enhancementService.isEnhancementEnabled = newValue
                                     }
@@ -135,12 +136,14 @@ struct AudioTranscribeView: View {
                                 )
                             }
                         }
+                        .accessibilityIdentifier(AccessibilityID.AudioTranscribe.buttonStartTranscription)
                         .buttonStyle(.borderedProminent)
                         
                         Button("Choose Different File") {
                             selectedAudioURL = nil
                             isAudioFileSelected = false
                         }
+                        .accessibilityIdentifier(AccessibilityID.AudioTranscribe.buttonChooseDifferentFile)
                         .buttonStyle(.bordered)
                     }
                 }
@@ -174,12 +177,14 @@ struct AudioTranscribeView: View {
                         Button("Choose File") {
                             selectFile()
                         }
+                        .accessibilityIdentifier(AccessibilityID.AudioTranscribe.buttonChooseFile)
                         .buttonStyle(.bordered)
                     }
                     .padding(32)
                 }
                 .frame(height: 200)
                 .padding(.horizontal)
+                .accessibilityIdentifier(AccessibilityID.AudioTranscribe.zoneDropArea)
             }
             
             Text("Supported formats: WAV, MP3, M4A, AIFF, MP4, MOV, AAC, FLAC, CAF, AMR, OGG, OPUS, 3GP")

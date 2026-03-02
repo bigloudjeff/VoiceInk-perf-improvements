@@ -31,6 +31,7 @@ struct AnimatedSaveButton: View {
                     .fill(isSaved ? Color.green.opacity(0.8) : Color.orange)
             )
         }
+        .accessibilityIdentifier(AccessibilityID.Common.buttonSave)
         .buttonStyle(.plain)
         .scaleEffect(isSaved ? 1.05 : 1.0)
         .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isSaved)

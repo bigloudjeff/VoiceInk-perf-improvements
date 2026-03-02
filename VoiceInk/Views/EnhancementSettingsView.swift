@@ -32,7 +32,8 @@ struct EnhancementSettingsView: View {
                         }
                     }
                     .toggleStyle(.switch)
-                    
+                    .accessibilityIdentifier(AccessibilityID.Enhancement.toggleAIEnhancement)
+
                     HStack(spacing: 24) {
                         Toggle(isOn: $enhancementService.useClipboardContext) {
                             HStack(spacing: 4) {
@@ -41,6 +42,7 @@ struct EnhancementSettingsView: View {
                             }
                         }
                         .toggleStyle(.switch)
+                        .accessibilityIdentifier(AccessibilityID.Enhancement.toggleClipboardContext)
 
                         Toggle(isOn: $enhancementService.useScreenCaptureContext) {
                             HStack(spacing: 4) {
@@ -49,6 +51,7 @@ struct EnhancementSettingsView: View {
                             }
                         }
                         .toggleStyle(.switch)
+                        .accessibilityIdentifier(AccessibilityID.Enhancement.toggleScreenContext)
                     }
                     .opacity(enhancementService.isEnhancementEnabled ? 1.0 : 0.8)
                 } header: {
@@ -89,6 +92,7 @@ struct EnhancementSettingsView: View {
                                 .foregroundStyle(.secondary)
                         }
                         .buttonStyle(.plain)
+                        .accessibilityIdentifier(AccessibilityID.Enhancement.buttonAddPrompt)
                         .help("Add new prompt")
                     }
                 }
@@ -112,6 +116,7 @@ struct EnhancementSettingsView: View {
                             }
                         }
                     }
+                    .accessibilityIdentifier(AccessibilityID.Enhancement.toggleShortcutsDisclosure)
                 }
                 .opacity(enhancementService.isEnhancementEnabled ? 1.0 : 0.8)
             }

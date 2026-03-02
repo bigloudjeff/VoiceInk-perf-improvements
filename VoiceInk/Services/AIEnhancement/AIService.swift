@@ -13,7 +13,6 @@ enum AIProvider: String, CaseIterable {
     case elevenLabs = "ElevenLabs"
     case deepgram = "Deepgram"
     case soniox = "Soniox"
-    case local = "MLX-LM"
     case ollama = "Ollama"
     case custom = "Custom"
     
@@ -40,8 +39,6 @@ enum AIProvider: String, CaseIterable {
             return "https://api.deepgram.com/v1/listen"
         case .soniox:
             return "https://api.soniox.com/v1"
-        case .local:
-            return (UserDefaults.standard.string(forKey: "localMLXBaseURL") ?? "http://localhost:8090") + "/v1/chat/completions"
         case .ollama:
             return UserDefaults.standard.string(forKey: "ollamaBaseURL") ?? "http://localhost:11434"
         case .custom:
@@ -69,8 +66,6 @@ enum AIProvider: String, CaseIterable {
             return "whisper-1"
         case .soniox:
             return "stt-async-v4"
-        case .local:
-            return UserDefaults.standard.string(forKey: "localMLXSelectedModel") ?? ""
         case .ollama:
             return UserDefaults.standard.string(forKey: "ollamaSelectedModel") ?? "mistral"
         case .custom:
@@ -138,8 +133,6 @@ enum AIProvider: String, CaseIterable {
             return ["whisper-1"]
         case .soniox:
             return ["stt-async-v4"]
-        case .local:
-            return []
         case .ollama:
             return []
         case .custom:
@@ -151,7 +144,7 @@ enum AIProvider: String, CaseIterable {
     
     var requiresAPIKey: Bool {
         switch self {
-        case .local, .ollama:
+        case .ollama:
             return false
         default:
             return true
@@ -191,11 +184,6 @@ class AIService: ObservableObject {
                         await ollamaService.checkConnection()
                         await ollamaService.refreshModels()
                     }
-                } else if selectedProvider == .local {
-                    Task {
-                        await localMLXService.checkConnection()
-                        await localMLXService.refreshModels()
-                    }
                 }
             }
             NotificationCenter.default.post(name: .AppSettingsDidChange, object: nil)
@@ -205,16 +193,13 @@ class AIService: ObservableObject {
     @Published private var selectedModels: [AIProvider: String] = [:]
     private let userDefaults = UserDefaults.standard
     private let ollamaService = OllamaService()
-    private let localMLXService = LocalMLXService()
     private var cancellables = Set<AnyCancellable>()
     
     @Published private var openRouterModels: [String] = []
     
     var connectedProviders: [AIProvider] {
         AIProvider.allCases.filter { provider in
-            if provider == .local {
-                return localMLXService.isConnected
-            } else if provider == .ollama {
+            if provider == .ollama {
                 return ollamaService.isConnected
             } else if provider.requiresAPIKey {
                 return APIKeyManager.shared.hasAPIKey(forProvider: provider.rawValue)
@@ -226,16 +211,14 @@ class AIService: ObservableObject {
     var currentModel: String {
         if let selectedModel = selectedModels[selectedProvider],
            !selectedModel.isEmpty,
-           ((selectedProvider == .ollama || selectedProvider == .local) && !selectedModel.isEmpty) || availableModels.contains(selectedModel) {
+           (selectedProvider == .ollama && !selectedModel.isEmpty) || availableModels.contains(selectedModel) {
             return selectedModel
         }
         return selectedProvider.defaultModel
     }
     
     var availableModels: [String] {
-        if selectedProvider == .local {
-            return localMLXService.availableModels
-        } else if selectedProvider == .ollama {
+        if selectedProvider == .ollama {
             return ollamaService.availableModels.map { $0.name }
         } else if selectedProvider == .openRouter {
             return openRouterModels
@@ -271,20 +254,12 @@ class AIService: ObservableObject {
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in self?.objectWillChange.send() }
             .store(in: &cancellables)
-        localMLXService.objectWillChange
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] _ in self?.objectWillChange.send() }
-            .store(in: &cancellables)
 
         Task { @MainActor [weak self] in
             guard let self else { return }
             await self.ollamaService.checkConnection()
             if self.ollamaService.isConnected {
                 await self.ollamaService.refreshModels()
-            }
-            await self.localMLXService.checkConnection()
-            if self.localMLXService.isConnected {
-                await self.localMLXService.refreshModels()
             }
         }
     }
@@ -315,9 +290,7 @@ class AIService: ObservableObject {
         let key = "\(selectedProvider.rawValue)SelectedModel"
         userDefaults.set(model, forKey: key)
         
-        if selectedProvider == .local {
-            updateSelectedLocalMLXModel(model)
-        } else if selectedProvider == .ollama {
+        if selectedProvider == .ollama {
             updateSelectedOllamaModel(model)
         }
         
@@ -432,49 +405,6 @@ class AIService: ObservableObject {
         userDefaults.set(modelName, forKey: "ollamaSelectedModel")
     }
     
-    // MARK: - Local MLX Service
-
-    func checkLocalMLXConnection(completion: @escaping (Bool) -> Void) {
-        Task { [weak self] in
-            guard let self = self else { return }
-            await self.localMLXService.checkConnection()
-            DispatchQueue.main.async {
-                completion(self.localMLXService.isConnected)
-            }
-        }
-    }
-
-    func startLocalMLXServer() async -> Bool {
-        await localMLXService.startServerIfNeeded()
-    }
-
-    var isLocalMLXStartingServer: Bool {
-        localMLXService.isStartingServer
-    }
-
-    var isLocalMLXServerManagedByApp: Bool {
-        localMLXService.isServerManagedByApp
-    }
-
-    func stopLocalMLXServer() {
-        localMLXService.stopServer()
-    }
-
-    func fetchLocalMLXModels() async -> [String] {
-        await localMLXService.refreshModels()
-        return localMLXService.availableModels
-    }
-
-    func updateLocalMLXBaseURL(_ newURL: String) {
-        localMLXService.baseURL = newURL
-        userDefaults.set(newURL, forKey: "localMLXBaseURL")
-    }
-
-    func updateSelectedLocalMLXModel(_ modelName: String) {
-        localMLXService.selectedModel = modelName
-        userDefaults.set(modelName, forKey: "localMLXSelectedModel")
-    }
-
     // MARK: - OpenRouter
 
     func fetchOpenRouterModels() async {

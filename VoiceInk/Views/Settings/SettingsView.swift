@@ -87,12 +87,14 @@ struct SettingsView: View {
                     Button("Add Second Hotkey") {
                         withAnimation { hotkeyManager.selectedHotkey2 = .rightOption }
                     }
+                    .accessibilityIdentifier(AccessibilityID.Settings.buttonAddSecondHotkey)
                 }
                 Picker("Recording Mode", selection: $hotkeyManager.recordingMode) {
                     ForEach(HotkeyManager.RecordingMode.allCases, id: \.self) { mode in
                         Text(mode.displayName).tag(mode)
                     }
                 }
+                .accessibilityIdentifier(AccessibilityID.Settings.pickerRecordingMode)
 
             } header: {
                 Text("Shortcuts")
@@ -179,6 +181,7 @@ struct SettingsView: View {
                 ) {
                     CustomSoundSettingsView()
                 }
+                .accessibilityIdentifier(AccessibilityID.Settings.toggleSoundFeedback)
 
                 // Mute System Audio
                 ExpandableSettingsRow(
@@ -195,6 +198,7 @@ struct SettingsView: View {
                         Text("5s").tag(5.0)
                     }
                 }
+                .accessibilityIdentifier(AccessibilityID.Settings.toggleMuteAudio)
 
                 // Restore Clipboard
                 ExpandableSettingsRow(
@@ -212,6 +216,7 @@ struct SettingsView: View {
                         Text("5s").tag(5.0)
                     }
                 }
+                .accessibilityIdentifier(AccessibilityID.Settings.toggleRestoreClipboard)
 
                 // Paste Method
                 Picker(selection: $pasteMethod) {
@@ -224,6 +229,7 @@ struct SettingsView: View {
                         InfoTip("Paste uses simulated Cmd+V. AppleScript works with custom keyboard layouts (e.g. Neo2). Type Out types text character-by-character, bypassing paste restrictions in some apps.")
                     }
                 }
+                .accessibilityIdentifier(AccessibilityID.Settings.pickerPasteMethod)
 
                 Picker("Type Out Delay", selection: $typeOutDelay) {
                     Text("1s").tag(1.0)
@@ -232,6 +238,7 @@ struct SettingsView: View {
                     Text("5s").tag(5.0)
                     Text("8s").tag(8.0)
                 }
+                .accessibilityIdentifier(AccessibilityID.Settings.pickerTypeOutDelay)
 
                 // Text Field Detection
                 Toggle(isOn: $warnNoTextField) {
@@ -240,6 +247,7 @@ struct SettingsView: View {
                         InfoTip("Shows a warning when no editable text field is focused. Transcription will be copied to clipboard instead of pasted.")
                     }
                 }
+                .accessibilityIdentifier(AccessibilityID.Settings.toggleWarnNoTextField)
             }
 
             // MARK: - Power Mode
@@ -252,12 +260,14 @@ struct SettingsView: View {
                     Text("Mini").tag("mini")
                 }
                 .pickerStyle(.segmented)
+                .accessibilityIdentifier(AccessibilityID.Settings.pickerRecorderStyle)
 
                 Picker("Display", selection: $whisperState.recorderScreenSelection) {
                     Text("Active Window").tag("activeWindow")
                     Text("Mouse Cursor").tag("mouseCursor")
                     Text("Primary Display").tag("primaryDisplay")
                 }
+                .accessibilityIdentifier(AccessibilityID.Settings.pickerDisplay)
             }
 
             // MARK: - Experimental
@@ -266,15 +276,19 @@ struct SettingsView: View {
             // MARK: - General
             Section("General") {
                 Toggle("Hide Dock Icon", isOn: $menuBarManager.isMenuBarOnly)
+                    .accessibilityIdentifier(AccessibilityID.Settings.toggleHideDockIcon)
 
                 LaunchAtLogin.Toggle("Launch at Login")
+                    .accessibilityIdentifier(AccessibilityID.Settings.toggleLaunchAtLogin)
 
                 Toggle("Auto-check Updates", isOn: $autoUpdateCheck)
+                    .accessibilityIdentifier(AccessibilityID.Settings.toggleAutoCheckUpdates)
                     .onChange(of: autoUpdateCheck) { _, newValue in
                         updaterViewModel.toggleAutoUpdates(newValue)
                     }
 
                 Toggle("Show Announcements", isOn: $enableAnnouncements)
+                    .accessibilityIdentifier(AccessibilityID.Settings.toggleShowAnnouncements)
                     .onChange(of: enableAnnouncements) { _, newValue in
                         if newValue {
                             AnnouncementsService.shared.start()
@@ -288,10 +302,12 @@ struct SettingsView: View {
                         updaterViewModel.checkForUpdates()
                     }
                     .disabled(!updaterViewModel.canCheckForUpdates)
+                    .accessibilityIdentifier(AccessibilityID.Settings.buttonCheckForUpdates)
 
                     Button("Reset Onboarding") {
                         showResetOnboardingAlert = true
                     }
+                    .accessibilityIdentifier(AccessibilityID.Settings.buttonResetOnboarding)
                 }
             }
 
@@ -319,6 +335,7 @@ struct SettingsView: View {
                             whisperState: whisperState
                         )
                     }
+                    .accessibilityIdentifier(AccessibilityID.Settings.buttonExportSettings)
                 }
 
                 LabeledContent("Import Settings") {
@@ -334,6 +351,7 @@ struct SettingsView: View {
                             whisperState: whisperState
                         )
                     }
+                    .accessibilityIdentifier(AccessibilityID.Settings.buttonImportSettings)
                 }
             } header: {
                 Text("Backup")

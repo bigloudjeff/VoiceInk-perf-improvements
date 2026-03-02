@@ -68,11 +68,13 @@ struct OnboardingView: View {
                                             .background(Color.white)
                                             .cornerRadius(25)
                                     }
+                                    .accessibilityIdentifier(AccessibilityID.Onboarding.buttonGetStarted)
                                     .buttonStyle(ScaleButtonStyle())
-                                    
+
                                     SkipButton(text: "Skip Tour") {
                                         hasCompletedOnboarding = true
                                     }
+                                    .accessibilityIdentifier(AccessibilityID.Onboarding.buttonSkipTour)
                                 }
                                 .padding(.bottom, 35)
                                 .transition(.move(edge: .bottom).combined(with: .opacity))

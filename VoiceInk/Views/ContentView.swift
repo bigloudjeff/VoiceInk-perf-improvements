@@ -117,6 +117,7 @@ struct ContentView: View {
                             }) {
                                 SidebarItemView(viewType: viewType)
                             }
+                            .accessibilityIdentifier(AccessibilityID.Sidebar.buttonHistory)
                             .buttonStyle(.plain)
                             .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
                             .listRowSeparator(.hidden)
@@ -124,12 +125,14 @@ struct ContentView: View {
                             NavigationLink(value: viewType) {
                                 SidebarItemView(viewType: viewType)
                             }
+                            .accessibilityIdentifier(AccessibilityID.Sidebar.navLink(viewType.rawValue))
                             .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
                             .listRowSeparator(.hidden)
                         }
                     }
                 }
             }
+            .accessibilityIdentifier(AccessibilityID.Sidebar.list)
             .listStyle(.sidebar)
             .navigationTitle("VoiceInk")
             .navigationSplitViewColumnWidth(210)

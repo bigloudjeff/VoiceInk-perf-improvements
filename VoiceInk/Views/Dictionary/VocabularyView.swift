@@ -63,6 +63,7 @@ struct VocabularyView: View {
                 TextField("Add word to vocabulary", text: $newWord)
                     .textFieldStyle(.roundedBorder)
                     .font(.system(size: 13))
+                    .accessibilityIdentifier(AccessibilityID.Vocabulary.fieldAddWord)
                     .onSubmit { addWords() }
 
                 if shouldShowAddButton {
@@ -73,6 +74,7 @@ struct VocabularyView: View {
                             .font(.system(size: 16, weight: .semibold))
                     }
                     .buttonStyle(.borderless)
+                    .accessibilityIdentifier(AccessibilityID.Vocabulary.buttonAddWord)
                     .disabled(newWord.isEmpty)
                     .help("Add word")
                 }
@@ -94,6 +96,7 @@ struct VocabularyView: View {
                             }
                         }
                         .buttonStyle(.plain)
+                        .accessibilityIdentifier(AccessibilityID.Vocabulary.buttonSort)
                         .help("Sort alphabetically")
 
                         Spacer()
@@ -113,6 +116,7 @@ struct VocabularyView: View {
                             }
                         }
                         .buttonStyle(.borderless)
+                        .accessibilityIdentifier(AccessibilityID.Vocabulary.buttonGenerateHints)
                         .foregroundColor(.blue)
                         .disabled(isGenerating)
                         .help("Scan transcription history to discover phonetic hints")

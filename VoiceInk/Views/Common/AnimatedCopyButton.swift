@@ -23,6 +23,7 @@ struct AnimatedCopyButton: View {
                     .fill(isCopied ? Color.green.opacity(0.8) : Color.blue)
             )
         }
+        .accessibilityIdentifier(AccessibilityID.Common.buttonCopy)
         .buttonStyle(.plain)
         .scaleEffect(isCopied ? 1.05 : 1.0)
         .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isCopied)

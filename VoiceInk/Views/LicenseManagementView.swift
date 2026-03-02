@@ -64,6 +64,7 @@ struct LicenseManagementView: View {
                         } label: {
                             featureItem(icon: "list.bullet.clipboard.fill", title: "Changelog", color: .blue)
                         }
+                        .accessibilityIdentifier(AccessibilityID.License.buttonChangelog)
                         .buttonStyle(.plain)
                         
                         Button {
@@ -73,6 +74,7 @@ struct LicenseManagementView: View {
                         } label: {
                             featureItem(icon: "bubble.left.and.bubble.right.fill", title: "Discord", color: .purple)
                         }
+                        .accessibilityIdentifier(AccessibilityID.License.buttonDiscord)
                         .buttonStyle(.plain)
                         
                         Button {
@@ -80,6 +82,7 @@ struct LicenseManagementView: View {
                         } label: {
                             featureItem(icon: "envelope.fill", title: "Email Support", color: .orange)
                         }
+                        .accessibilityIdentifier(AccessibilityID.License.buttonEmailSupport)
                         .buttonStyle(.plain)
                         
                         Button {
@@ -89,6 +92,7 @@ struct LicenseManagementView: View {
                         } label: {
                             featureItem(icon: "book.fill", title: "Docs", color: .indigo)
                         }
+                        .accessibilityIdentifier(AccessibilityID.License.buttonDocs)
                         .buttonStyle(.plain)
                         
                         Button {
@@ -98,6 +102,7 @@ struct LicenseManagementView: View {
                         } label: {
                             animatedTipJarItem()
                         }
+                        .accessibilityIdentifier(AccessibilityID.License.buttonTipJar)
                         .buttonStyle(.plain)
                     }
                     .padding(.top, 8)
@@ -135,6 +140,7 @@ struct LicenseManagementView: View {
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 12)
                 }
+                .accessibilityIdentifier(AccessibilityID.License.buttonUpgrade)
                 .buttonStyle(.borderedProminent)
                 
                 // Features Grid
@@ -160,6 +166,7 @@ struct LicenseManagementView: View {
                         .textFieldStyle(.roundedBorder)
                         .font(.system(.body, design: .monospaced))
                         .textCase(.uppercase)
+                        .accessibilityIdentifier(AccessibilityID.License.fieldLicenseKey)
                     
                     Button(action: {
                         Task { await licenseViewModel.validateLicense() }
@@ -172,6 +179,7 @@ struct LicenseManagementView: View {
                                 .frame(width: 80)
                         }
                     }
+                    .accessibilityIdentifier(AccessibilityID.License.buttonActivate)
                     .buttonStyle(.borderedProminent)
                     .disabled(licenseViewModel.isValidating)
                 }
@@ -205,6 +213,7 @@ struct LicenseManagementView: View {
                         Text("License Management Portal")
                             .frame(width: 180)
                     }
+                    .accessibilityIdentifier(AccessibilityID.License.buttonManagePortal)
                     .buttonStyle(.borderedProminent)
                 }
             }
@@ -261,6 +270,7 @@ struct LicenseManagementView: View {
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 8)
                 }
+                .accessibilityIdentifier(AccessibilityID.License.buttonDeactivate)
                 .buttonStyle(.bordered)
             }
             .padding(32)

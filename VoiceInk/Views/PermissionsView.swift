@@ -148,7 +148,8 @@ struct PermissionCard: View {
                     }
                     .buttonStyle(.plain)
                     .contentShape(Rectangle())
-                    
+                    .accessibilityIdentifier(AccessibilityID.Permissions.buttonRefresh(title))
+
                     if isGranted {
                         Image(systemName: "checkmark.seal.fill")
                             .font(.system(size: 20))
@@ -184,6 +185,7 @@ struct PermissionCard: View {
                     .cornerRadius(10)
                 }
                 .buttonStyle(.plain)
+                .accessibilityIdentifier(AccessibilityID.Permissions.buttonGrant(title))
             }
         }
         .padding()
@@ -225,7 +227,8 @@ struct PermissionsView: View {
                         },
                         checkPermission: { permissionManager.checkKeyboardShortcut() }
                     )
-                    
+                    .accessibilityIdentifier(AccessibilityID.Permissions.card("keyboard"))
+
                     // Audio Permission
                     PermissionCard(
                         icon: "mic",
@@ -244,7 +247,8 @@ struct PermissionsView: View {
                         },
                         checkPermission: { permissionManager.checkAudioPermissionStatus() }
                     )
-                    
+                    .accessibilityIdentifier(AccessibilityID.Permissions.card("microphone"))
+
                     // Accessibility Permission
                     PermissionCard(
                         icon: "hand.raised",
@@ -260,7 +264,8 @@ struct PermissionsView: View {
                         checkPermission: { permissionManager.checkAccessibilityPermissions() },
                         infoTipMessage: "VoiceInk uses Accessibility permissions to paste the transcribed text directly into other applications at your cursor's position. This allows for a seamless dictation experience across your Mac."
                     )
-                    
+                    .accessibilityIdentifier(AccessibilityID.Permissions.card("accessibility"))
+
                     // Screen Recording Permission
                     PermissionCard(
                         icon: "rectangle.on.rectangle",
@@ -279,6 +284,7 @@ struct PermissionsView: View {
                         infoTipMessage: "VoiceInk captures on-screen text to understand the context of your voice input, which significantly improves transcription accuracy. Your privacy is important: this data is processed locally and is not stored.",
                         infoTipLink: "https://tryvoiceink.com/docs/contextual-awareness"
                     )
+                    .accessibilityIdentifier(AccessibilityID.Permissions.card("screenRecording"))
                 }
             }
             .padding(24)

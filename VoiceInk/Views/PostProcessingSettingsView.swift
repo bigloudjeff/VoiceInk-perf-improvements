@@ -16,6 +16,7 @@ struct PostProcessingSettingsView: View {
      }
     }
     .toggleStyle(.switch)
+    .accessibilityIdentifier(AccessibilityID.PostProcessing.togglePostProcessing)
    } header: {
     Text("General")
    }
@@ -28,6 +29,7 @@ struct PostProcessingSettingsView: View {
      }
     }
     .toggleStyle(.switch)
+    .accessibilityIdentifier(AccessibilityID.PostProcessing.toggleVocabularyExtraction)
 
     Toggle(isOn: $autoGeneratePhoneticHints) {
      HStack(spacing: 4) {
@@ -36,6 +38,7 @@ struct PostProcessingSettingsView: View {
      }
     }
     .toggleStyle(.switch)
+    .accessibilityIdentifier(AccessibilityID.PostProcessing.toggleAutoPhoneticHints)
    } header: {
     Text("Features")
    }
