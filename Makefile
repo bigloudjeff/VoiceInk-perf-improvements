@@ -3,7 +3,7 @@ DEPS_DIR := $(HOME)/VoiceInk-Dependencies
 WHISPER_CPP_DIR := $(DEPS_DIR)/whisper.cpp
 FRAMEWORK_PATH := $(WHISPER_CPP_DIR)/build-apple/whisper.xcframework
 
-.PHONY: all clean whisper setup build local check healthcheck help dev run test
+.PHONY: all clean whisper setup build local check healthcheck help dev run test stamp
 
 # Default target
 all: check build
@@ -40,11 +40,24 @@ setup: whisper
 	@echo "Whisper framework is ready at $(FRAMEWORK_PATH)"
 	@echo "Please ensure your Xcode project references the framework from this new location."
 
-build: setup
+build: setup stamp
 	xcodebuild -project VoiceInk.xcodeproj -scheme VoiceInk -configuration Debug CODE_SIGN_IDENTITY="" build
 
+# Increment build number and stamp build date into BuildInfo.swift
+stamp:
+	@# Increment CURRENT_PROJECT_VERSION in project.pbxproj (main target only, first 2 occurrences)
+	@CURRENT=$$(grep -m1 'CURRENT_PROJECT_VERSION = [0-9]' VoiceInk.xcodeproj/project.pbxproj | sed 's/[^0-9]//g') && \
+	NEXT=$$((CURRENT + 1)) && \
+	awk -v old="$$CURRENT" -v new="$$NEXT" 'BEGIN{count=0} /CURRENT_PROJECT_VERSION = [0-9]/ && count < 2 {sub("CURRENT_PROJECT_VERSION = "old, "CURRENT_PROJECT_VERSION = "new); count++} {print}' VoiceInk.xcodeproj/project.pbxproj > VoiceInk.xcodeproj/project.pbxproj.tmp && \
+	mv VoiceInk.xcodeproj/project.pbxproj.tmp VoiceInk.xcodeproj/project.pbxproj && \
+	echo "Build number: $$CURRENT -> $$NEXT"
+	@# Stamp build date into BuildInfo.swift
+	@BUILD_DATE=$$(date '+%Y-%m-%d %H:%M:%S') && \
+	sed -i '' "s/static let buildDate = \".*\"/static let buildDate = \"$$BUILD_DATE\"/" VoiceInk/BuildInfo.swift && \
+	echo "Build date: $$BUILD_DATE"
+
 # Build for local use without Apple Developer certificate
-local: check setup
+local: check setup stamp
 	@echo "Building VoiceInk for local use (no Apple Developer certificate required)..."
 	xcodebuild -project VoiceInk.xcodeproj -scheme VoiceInk -configuration Debug \
 		-xcconfig LocalBuild.xcconfig \

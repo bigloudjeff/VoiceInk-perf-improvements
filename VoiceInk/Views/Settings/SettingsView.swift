@@ -36,6 +36,15 @@ struct SettingsView: View {
 
     var body: some View {
         Form {
+            // MARK: - Build Info
+            Section {
+                HStack {
+                    Text(BuildInfo.summary)
+                        .font(.system(size: 11, design: .monospaced))
+                        .foregroundColor(.secondary)
+                }
+            }
+
             // MARK: - Shortcuts
             Section {
                 LabeledContent("Hotkey 1") {
