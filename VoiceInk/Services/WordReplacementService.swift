@@ -25,12 +25,13 @@ class WordReplacementService: WordReplacing {
         }
 
         let pairs = replacements.map { (originalText: $0.originalText, replacementText: $0.replacementText) }
-        return applyReplacements(to: text, pairs: pairs)
+        return Self.applyReplacements(to: text, pairs: pairs)
     }
 
     /// Pure transformation: apply replacement pairs to text without SwiftData dependency.
     /// Each pair's `originalText` may be comma-separated for multiple variants.
-    func applyReplacements(to text: String, pairs: [(originalText: String, replacementText: String)]) -> String {
+    /// Thread-safe static method suitable for testing.
+    static func applyReplacements(to text: String, pairs: [(originalText: String, replacementText: String)]) -> String {
         guard !pairs.isEmpty else { return text }
 
         var modifiedText = text
@@ -42,11 +43,9 @@ class WordReplacementService: WordReplacing {
                 .filter { !$0.isEmpty }
 
             for original in variants {
-                let usesBoundaries = usesWordBoundaries(for: original)
-
-                if usesBoundaries {
-                    let regex = cachedRegex(for: original)
-                    if let regex {
+                if usesWordBoundaries(for: original) {
+                    let pattern = "\\b\(NSRegularExpression.escapedPattern(for: original))\\b"
+                    if let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive) {
                         let range = NSRange(modifiedText.startIndex..., in: modifiedText)
                         modifiedText = regex.stringByReplacingMatches(
                             in: modifiedText,
@@ -76,7 +75,7 @@ class WordReplacementService: WordReplacing {
         return regex
     }
 
-    private func usesWordBoundaries(for text: String) -> Bool {
+    private static func usesWordBoundaries(for text: String) -> Bool {
         // Returns false for languages without spaces (CJK, Thai), true for spaced languages
         let nonSpacedScripts: [ClosedRange<UInt32>] = [
             0x3040...0x309F, // Hiragana
