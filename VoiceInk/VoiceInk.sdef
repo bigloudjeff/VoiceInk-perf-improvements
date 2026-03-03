@@ -95,5 +95,16 @@
    <result type="text" description="The new language code."/>
   </command>
 
+  <command name="show window" code="VoIkShWn" description="Show the main window and navigate to a view.">
+   <cocoa class="VoiceInk.ShowWindowCommand"/>
+   <direct-parameter type="text" optional="yes" description="The view to navigate to: Dashboard, History, AI Models, Enhancement, Post Processing, Power Mode, Permissions, Audio Input, Dictionary, Settings, Transcribe Audio, VoiceInk Pro."/>
+   <result type="text" description="The view shown."/>
+  </command>
+
+  <command name="show history" code="VoIkShHi" description="Open the History window.">
+   <cocoa class="VoiceInk.ShowHistoryCommand"/>
+   <result type="text" description="The result status."/>
+  </command>
+
  </suite>
 </dictionary>

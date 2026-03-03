@@ -177,3 +177,39 @@ class SetLanguageCommand: NSScriptCommand {
   return trimmed
  }
 }
+
+class ShowWindowCommand: NSScriptCommand {
+ override func performDefaultImplementation() -> Any? {
+  return MainActor.assumeIsolated {
+   guard let menuBarManager = AppServiceLocator.shared.menuBarManager else {
+    return "Service not available"
+   }
+   menuBarManager.focusMainWindow()
+   if let destination = directParameter as? String, !destination.isEmpty {
+    NotificationCenter.default.post(
+     name: .navigateToDestination,
+     object: nil,
+     userInfo: ["destination": destination]
+    )
+    return "Showing \(destination)"
+   }
+   return "Main window shown"
+  }
+ }
+}
+
+class ShowHistoryCommand: NSScriptCommand {
+ override func performDefaultImplementation() -> Any? {
+  return MainActor.assumeIsolated {
+   guard let container = AppServiceLocator.shared.modelContainer,
+         let whisperState = AppServiceLocator.shared.whisperState else {
+    return "Service not available"
+   }
+   HistoryWindowController.shared.showHistoryWindow(
+    modelContainer: container,
+    whisperState: whisperState
+   )
+   return "History window opened"
+  }
+ }
+}
