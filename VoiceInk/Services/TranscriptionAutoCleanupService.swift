@@ -80,11 +80,8 @@ class TranscriptionAutoCleanupService {
 
         modelContext.delete(transcription)
 
-        do {
-            try modelContext.save()
+        if modelContext.safeSave(context: "delete transcription", logger: logger) {
             NotificationCenter.default.post(name: .transcriptionDeleted, object: nil)
-        } catch {
-            logger.error("Failed to save after transcription deletion: \(error.localizedDescription, privacy: .public)")
         }
     }
 

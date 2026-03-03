@@ -110,15 +110,17 @@ class ImportExportService {
         // Fetch vocabulary words from SwiftData
         var exportedDictionaryItems: [VocabularyWordData]? = nil
         let vocabularyDescriptor = FetchDescriptor<VocabularyWord>()
-        if let items = try? whisperState.modelContext.fetch(vocabularyDescriptor), !items.isEmpty {
-            exportedDictionaryItems = items.map { VocabularyWordData(word: $0.word) }
+        let vocabItems = whisperState.modelContext.safeFetch(vocabularyDescriptor, context: "export vocabulary words", logger: logger)
+        if !vocabItems.isEmpty {
+            exportedDictionaryItems = vocabItems.map { VocabularyWordData(word: $0.word) }
         }
 
         // Fetch word replacements from SwiftData
         var exportedWordReplacements: [String: String]? = nil
         let replacementsDescriptor = FetchDescriptor<WordReplacement>()
-        if let replacements = try? whisperState.modelContext.fetch(replacementsDescriptor), !replacements.isEmpty {
-            exportedWordReplacements = Dictionary(uniqueKeysWithValues: replacements.map { ($0.originalText, $0.replacementText) })
+        let replacementItems = whisperState.modelContext.safeFetch(replacementsDescriptor, context: "export word replacements", logger: logger)
+        if !replacementItems.isEmpty {
+            exportedWordReplacements = Dictionary(uniqueKeysWithValues: replacementItems.map { ($0.originalText, $0.replacementText) })
         }
 
         // Fetch transcription history from SwiftData
@@ -126,7 +128,8 @@ class ImportExportService {
         let transcriptionDescriptor = FetchDescriptor<Transcription>(
             sortBy: [SortDescriptor(\.timestamp, order: .reverse)]
         )
-        if let transcriptions = try? whisperState.modelContext.fetch(transcriptionDescriptor), !transcriptions.isEmpty {
+        let transcriptions = whisperState.modelContext.safeFetch(transcriptionDescriptor, context: "export transcriptions", logger: logger)
+        if !transcriptions.isEmpty {
             exportedTranscriptions = transcriptions.map { t in
                 TranscriptionExportData(
                     id: t.id,
@@ -286,7 +289,7 @@ class ImportExportService {
                     // Import vocabulary words to SwiftData
                     if let itemsToImport = importedSettings.vocabularyWords {
                         let vocabularyDescriptor = FetchDescriptor<VocabularyWord>()
-                        let existingWords = (try? whisperState.modelContext.fetch(vocabularyDescriptor)) ?? []
+                        let existingWords = whisperState.modelContext.safeFetch(vocabularyDescriptor, context: "import existing vocabulary", logger: self.logger)
                         let existingWordsSet = Set(existingWords.map { $0.word.lowercased() })
 
                         for item in itemsToImport {
@@ -295,12 +298,8 @@ class ImportExportService {
                                 whisperState.modelContext.insert(newWord)
                             }
                         }
-                        do {
-                            try whisperState.modelContext.save()
-                            self.logger.notice("Successfully imported vocabulary words.")
-                        } catch {
-                            self.logger.error("Failed to save imported vocabulary words: \(error.localizedDescription, privacy: .public)")
-                        }
+                        try whisperState.modelContext.trySave(context: "import vocabulary words")
+                        self.logger.notice("Successfully imported vocabulary words.")
                     } else {
                         self.logger.notice("No vocabulary words found in the imported file. Existing items remain unchanged.")
                     }
@@ -308,7 +307,7 @@ class ImportExportService {
                     // Import word replacements to SwiftData
                     if let replacementsToImport = importedSettings.wordReplacements {
                         let replacementsDescriptor = FetchDescriptor<WordReplacement>()
-                        let existingReplacements = (try? whisperState.modelContext.fetch(replacementsDescriptor)) ?? []
+                        let existingReplacements = whisperState.modelContext.safeFetch(replacementsDescriptor, context: "import existing replacements", logger: self.logger)
 
                         // Build a set of existing replacement keys for duplicate checking
                         var existingKeysSet = Set<String>()
@@ -336,12 +335,8 @@ class ImportExportService {
                                 existingKeysSet.formUnion(importTokens)
                             }
                         }
-                        do {
-                            try whisperState.modelContext.save()
-                            self.logger.notice("Successfully imported word replacements.")
-                        } catch {
-                            self.logger.error("Failed to save imported word replacements: \(error.localizedDescription, privacy: .public)")
-                        }
+                        try whisperState.modelContext.trySave(context: "import word replacements")
+                        self.logger.notice("Successfully imported word replacements.")
                     } else {
                         self.logger.notice("No word replacements found in the imported file. Existing replacements remain unchanged.")
                     }
@@ -349,7 +344,7 @@ class ImportExportService {
                     // Import transcription history
                     if let transcriptionsToImport = importedSettings.transcriptionHistory, !transcriptionsToImport.isEmpty {
                         let existingDescriptor = FetchDescriptor<Transcription>()
-                        let existingTranscriptions = (try? whisperState.modelContext.fetch(existingDescriptor)) ?? []
+                        let existingTranscriptions = whisperState.modelContext.safeFetch(existingDescriptor, context: "import existing transcriptions", logger: self.logger)
                         let existingIds = Set(existingTranscriptions.map { $0.id })
 
                         var importedCount = 0
@@ -374,12 +369,8 @@ class ImportExportService {
                             whisperState.modelContext.insert(transcription)
                             importedCount += 1
                         }
-                        do {
-                            try whisperState.modelContext.save()
-                            self.logger.notice("Successfully imported \(importedCount) transcriptions (skipped \(transcriptionsToImport.count - importedCount) duplicates).")
-                        } catch {
-                            self.logger.error("Failed to save imported transcriptions: \(error.localizedDescription, privacy: .public)")
-                        }
+                        try whisperState.modelContext.trySave(context: "import transcriptions")
+                        self.logger.notice("Successfully imported \(importedCount) transcriptions (skipped \(transcriptionsToImport.count - importedCount) duplicates).")
                     }
 
                     if let general = importedSettings.generalSettings {

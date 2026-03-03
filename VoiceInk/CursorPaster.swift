@@ -3,7 +3,7 @@ import AppKit
 import Carbon
 import os
 
-private let logger = Logger(subsystem: "com.VoiceInk", category: "CursorPaster")
+private let logger = Logger(subsystem: "com.prakashjoshipax.voiceink", category: "CursorPaster")
 
 class CursorPaster {
 

@@ -30,7 +30,8 @@ class PhoneticHintMiningService {
   let context = ModelContext(modelContainer)
 
   let wordDescriptor = FetchDescriptor<VocabularyWord>()
-  guard let vocabWords = try? context.fetch(wordDescriptor), !vocabWords.isEmpty else {
+  let vocabWords = context.safeFetch(wordDescriptor, context: "vocabulary words for hint mining", logger: logger)
+  guard !vocabWords.isEmpty else {
    return []
   }
 
@@ -43,7 +44,8 @@ class PhoneticHintMiningService {
    predicate: #Predicate { $0.enhancedText != nil }
   )
   transcriptionDescriptor.propertiesToFetch = [\.text, \.enhancedText]
-  guard let transcriptions = try? context.fetch(transcriptionDescriptor) else {
+  let transcriptions = context.safeFetch(transcriptionDescriptor, context: "transcriptions for hint mining", logger: logger)
+  guard !transcriptions.isEmpty else {
    return []
   }
 

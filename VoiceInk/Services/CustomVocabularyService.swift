@@ -1,15 +1,18 @@
 import Foundation
 import SwiftUI
 import SwiftData
+import os
 
 class CustomVocabularyService {
     static let shared = CustomVocabularyService()
+    private let logger = Logger(subsystem: "com.prakashjoshipax.voiceink", category: "CustomVocabularyService")
 
     private init() {}
 
     func getCustomVocabulary(from context: ModelContext) -> String {
         let descriptor = FetchDescriptor<VocabularyWord>(sortBy: [SortDescriptor(\VocabularyWord.word)])
-        guard let items = try? context.fetch(descriptor), !items.isEmpty else {
+        let items = context.safeFetch(descriptor, context: "custom vocabulary", logger: logger)
+        guard !items.isEmpty else {
             return ""
         }
 
@@ -25,7 +28,8 @@ class CustomVocabularyService {
 
     func getTranscriptionVocabulary(from context: ModelContext) -> String {
         let descriptor = FetchDescriptor<VocabularyWord>(sortBy: [SortDescriptor(\VocabularyWord.word)])
-        guard let items = try? context.fetch(descriptor), !items.isEmpty else {
+        let items = context.safeFetch(descriptor, context: "transcription vocabulary", logger: logger)
+        guard !items.isEmpty else {
             return ""
         }
 
@@ -35,13 +39,14 @@ class CustomVocabularyService {
 
     func existingWords(from context: ModelContext) -> Set<String> {
         let descriptor = FetchDescriptor<VocabularyWord>(sortBy: [SortDescriptor(\VocabularyWord.word)])
-        guard let items = try? context.fetch(descriptor) else { return [] }
+        let items = context.safeFetch(descriptor, context: "existing words", logger: logger)
         return Set(items.map { $0.word.lowercased() })
     }
 
     func getUniqueTerms(from context: ModelContext, limit: Int? = nil) -> [String] {
         let descriptor = FetchDescriptor<VocabularyWord>(sortBy: [SortDescriptor(\VocabularyWord.word)])
-        guard let vocabularyWords = try? context.fetch(descriptor) else {
+        let vocabularyWords = context.safeFetch(descriptor, context: "unique terms", logger: logger)
+        guard !vocabularyWords.isEmpty else {
             return []
         }
         var seen = Set<String>()
@@ -61,13 +66,8 @@ class CustomVocabularyService {
 
     private func getCustomVocabularyWords(from context: ModelContext) -> [String]? {
         let descriptor = FetchDescriptor<VocabularyWord>(sortBy: [SortDescriptor(\VocabularyWord.word)])
-
-        do {
-            let items = try context.fetch(descriptor)
-            let words = items.map { $0.word }
-            return words.isEmpty ? nil : words
-        } catch {
-            return nil
-        }
+        let items = context.safeFetch(descriptor, context: "custom vocabulary words", logger: logger)
+        let words = items.map { $0.word }
+        return words.isEmpty ? nil : words
     }
 }

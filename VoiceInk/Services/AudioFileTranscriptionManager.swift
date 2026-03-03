@@ -122,7 +122,7 @@ class AudioTranscriptionManager: ObservableObject {
                             powerModeEmoji: powerModeEmoji
                         )
                         modelContext.insert(transcription)
-                        try modelContext.save()
+                        try modelContext.trySave(context: "save enhanced transcription")
                         NotificationCenter.default.post(name: .transcriptionCreated, object: transcription)
                         NotificationCenter.default.post(name: .transcriptionCompleted, object: transcription)
                         currentTranscription = transcription
@@ -139,7 +139,7 @@ class AudioTranscriptionManager: ObservableObject {
                             powerModeEmoji: powerModeEmoji
                         )
                         modelContext.insert(transcription)
-                        try modelContext.save()
+                        try modelContext.trySave(context: "save fallback transcription")
                         NotificationCenter.default.post(name: .transcriptionCreated, object: transcription)
                         NotificationCenter.default.post(name: .transcriptionCompleted, object: transcription)
                         currentTranscription = transcription
@@ -156,7 +156,7 @@ class AudioTranscriptionManager: ObservableObject {
                         powerModeEmoji: powerModeEmoji
                     )
                     modelContext.insert(transcription)
-                    try modelContext.save()
+                    try modelContext.trySave(context: "save transcription without enhancement")
                     NotificationCenter.default.post(name: .transcriptionCreated, object: transcription)
                     NotificationCenter.default.post(name: .transcriptionCompleted, object: transcription)
                     currentTranscription = transcription

@@ -170,11 +170,7 @@ class AudioCleanupManager {
                 }
 
                 if deletedCount > 0 || errorCount > 0 {
-                    do {
-                        try modelContext.save()
-                    } catch {
-                        logger.error("Failed to save after audio cleanup: \(error.localizedDescription, privacy: .public)")
-                    }
+                    modelContext.safeSave(context: "audio cleanup", logger: logger)
                 }
 
                 return (deletedCount, errorCount)

@@ -61,7 +61,8 @@ class VocabularySuggestionService: NSObject {
     predicate: #Predicate { $0.id == transcriptionId }
    )
 
-   guard let transcription = try? context.fetch(descriptor).first else {
+   let fetchedTranscriptions = context.safeFetch(descriptor, context: "transcription for vocabulary extraction", logger: self.logger)
+   guard let transcription = fetchedTranscriptions.first else {
     self.logger.warning("Transcription \(transcriptionId.uuidString, privacy: .public) not found for vocabulary extraction")
     return
    }
@@ -84,16 +85,12 @@ class VocabularySuggestionService: NSObject {
    let existingWords = CustomVocabularyService.shared.existingWords(from: context)
 
    let wordDescriptor = FetchDescriptor<VocabularyWord>()
-   let vocabLookup: [String: VocabularyWord]
-   if let allWords = try? context.fetch(wordDescriptor) {
-    vocabLookup = Dictionary(allWords.map { ($0.word.lowercased(), $0) }, uniquingKeysWith: { a, _ in a })
-   } else {
-    vocabLookup = [:]
-   }
+   let allWords = context.safeFetch(wordDescriptor, context: "vocabulary words for suggestion lookup", logger: self.logger)
+   let vocabLookup = Dictionary(allWords.map { ($0.word.lowercased(), $0) }, uniquingKeysWith: { a, _ in a })
 
    // Build suggestion lookup once (O(n) instead of O(n*m))
    let suggestionDescriptor = FetchDescriptor<VocabularySuggestion>()
-   let allSuggestions = (try? context.fetch(suggestionDescriptor)) ?? []
+   let allSuggestions = context.safeFetch(suggestionDescriptor, context: "existing suggestions", logger: self.logger)
    var suggestionLookup: [String: VocabularySuggestion] = [:]
    for suggestion in allSuggestions {
     suggestionLookup[suggestion.correctedPhrase.lowercased()] = suggestion

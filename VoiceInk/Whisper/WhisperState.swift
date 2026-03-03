@@ -196,11 +196,7 @@ class WhisperState: NSObject, ObservableObject {
  transcriptionStatus: .pending
  )
  modelContext.insert(transcription)
- do {
-  try modelContext.save()
- } catch {
-  logger.error("Failed to save new transcription: \(error.localizedDescription, privacy: .public)")
- }
+ modelContext.safeSave(context: "insert new transcription", logger: logger)
  NotificationCenter.default.post(name: .transcriptionCreated, object: transcription)
 
  let task = Task { await self.transcribeAudio(on: transcription) }
@@ -346,11 +342,7 @@ class WhisperState: NSObject, ObservableObject {
  }
  transcription.text = "Transcription Failed: Invalid audio file URL"
  transcription.transcriptionStatus = TranscriptionStatus.failed.rawValue
- do {
-  try modelContext.save()
- } catch {
-  logger.error("Failed to save transcription failure status: \(error.localizedDescription, privacy: .public)")
- }
+ modelContext.safeSave(context: "transcription failure status", logger: logger)
  return
  }
 
@@ -510,11 +502,7 @@ class WhisperState: NSObject, ObservableObject {
  } catch is CancellationError {
  logger.notice("Transcription cancelled, cleaning up silently")
  modelContext.delete(transcription)
- do {
-  try modelContext.save()
- } catch {
-  logger.error("Failed to save after cancellation cleanup: \(error.localizedDescription, privacy: .public)")
- }
+ modelContext.safeSave(context: "cancellation cleanup", logger: logger)
  recorder.restoreAudio()
  await self.dismissMiniRecorder()
  scheduleModelCleanup()
@@ -528,11 +516,7 @@ class WhisperState: NSObject, ObservableObject {
  transcription.transcriptionStatus = TranscriptionStatus.failed.rawValue
  }
 
- do {
-  try modelContext.save()
- } catch {
-  logger.error("Failed to save completed transcription: \(error.localizedDescription, privacy: .public)")
- }
+ modelContext.safeSave(context: "completed transcription", logger: logger)
 
  NotificationCenter.default.post(name: .transcriptionCompleted, object: transcription)
 

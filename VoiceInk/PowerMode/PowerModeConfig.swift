@@ -1,5 +1,6 @@
 import Foundation
 import KeyboardShortcuts
+import os
 
 struct PowerModeConfig: Codable, Identifiable, Equatable {
     var id: UUID
@@ -132,6 +133,7 @@ struct URLConfig: Codable, Identifiable, Equatable {
 
 class PowerModeManager: ObservableObject {
     static let shared = PowerModeManager()
+    private let logger = Logger(subsystem: "com.prakashjoshipax.voiceink", category: "PowerModeManager")
     @Published var configurations: [PowerModeConfig] = []
     @Published var activeConfiguration: PowerModeConfig?
 
@@ -150,15 +152,20 @@ class PowerModeManager: ObservableObject {
     }
 
     private func loadConfigurations() {
-        if let data = UserDefaults.standard.data(forKey: configKey),
-           let configs = try? JSONDecoder().decode([PowerModeConfig].self, from: data) {
-            configurations = configs
+        guard let data = UserDefaults.standard.data(forKey: configKey) else { return }
+        do {
+            configurations = try JSONDecoder().decode([PowerModeConfig].self, from: data)
+        } catch {
+            logger.error("Failed to decode power mode configurations: \(error.localizedDescription, privacy: .public)")
         }
     }
 
     func saveConfigurations() {
-        if let data = try? JSONEncoder().encode(configurations) {
+        do {
+            let data = try JSONEncoder().encode(configurations)
             UserDefaults.standard.set(data, forKey: configKey)
+        } catch {
+            logger.error("Failed to encode power mode configurations: \(error.localizedDescription, privacy: .public)")
         }
         NotificationCenter.default.post(name: .powerModeConfigurationsDidChange, object: nil)
     }

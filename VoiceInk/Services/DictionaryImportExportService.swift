@@ -2,6 +2,7 @@ import Foundation
 import AppKit
 import UniformTypeIdentifiers
 import SwiftData
+import os
 
 struct DictionaryExportData: Codable {
     let version: String
@@ -12,24 +13,20 @@ struct DictionaryExportData: Codable {
 
 class DictionaryImportExportService {
     static let shared = DictionaryImportExportService()
+    private let logger = Logger(subsystem: "com.prakashjoshipax.voiceink", category: "DictionaryImportExportService")
 
     private init() {}
 
     func exportDictionary(from context: ModelContext) {
         // Fetch vocabulary words from SwiftData
-        var dictionaryWords: [String] = []
         let vocabularyDescriptor = FetchDescriptor<VocabularyWord>(sortBy: [SortDescriptor(\VocabularyWord.word)])
-        if let items = try? context.fetch(vocabularyDescriptor) {
-            dictionaryWords = items.map { $0.word }
-        }
+        let dictionaryWords = context.safeFetch(vocabularyDescriptor, context: "export vocabulary words", logger: logger).map { $0.word }
 
         // Fetch word replacements from SwiftData
-        var wordReplacements: [String: String] = [:]
         let replacementsDescriptor = FetchDescriptor<WordReplacement>()
-        if let replacements = try? context.fetch(replacementsDescriptor) {
-            // Use uniquingKeysWith to handle potential duplicates gracefully (keep first occurrence)
-            wordReplacements = Dictionary(replacements.map { ($0.originalText, $0.replacementText) }, uniquingKeysWith: { first, _ in first })
-        }
+        let replacementItems = context.safeFetch(replacementsDescriptor, context: "export word replacements", logger: logger)
+        // Use uniquingKeysWith to handle potential duplicates gracefully (keep first occurrence)
+        let wordReplacements = Dictionary(replacementItems.map { ($0.originalText, $0.replacementText) }, uniquingKeysWith: { first, _ in first })
 
         let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.0.0"
 
@@ -96,7 +93,7 @@ class DictionaryImportExportService {
 
                     // Fetch existing vocabulary words from SwiftData
                     let vocabularyDescriptor = FetchDescriptor<VocabularyWord>()
-                    let existingItems = (try? context.fetch(vocabularyDescriptor)) ?? []
+                    let existingItems = context.safeFetch(vocabularyDescriptor, context: "import existing vocabulary", logger: self.logger)
                     let existingWordsLower = Set(existingItems.map { $0.word.lowercased() })
                     let originalExistingCount = existingItems.count
                     var newWordsAdded = 0
@@ -112,7 +109,7 @@ class DictionaryImportExportService {
 
                     // Fetch existing word replacements from SwiftData
                     let replacementsDescriptor = FetchDescriptor<WordReplacement>()
-                    let existingReplacements = (try? context.fetch(replacementsDescriptor)) ?? []
+                    let existingReplacements = context.safeFetch(replacementsDescriptor, context: "import existing replacements", logger: self.logger)
                     var addedCount = 0
                     var updatedCount = 0
 

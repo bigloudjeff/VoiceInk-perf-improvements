@@ -1,8 +1,10 @@
 import Foundation
 import SwiftData
+import os
 
 class WordReplacementService {
     static let shared = WordReplacementService()
+    private let logger = Logger(subsystem: "com.prakashjoshipax.voiceink", category: "WordReplacementService")
 
     private var cachedRegexes: [String: NSRegularExpression] = [:]
 
@@ -17,7 +19,8 @@ class WordReplacementService {
             predicate: #Predicate { $0.isEnabled }
         )
 
-        guard let replacements = try? context.fetch(descriptor), !replacements.isEmpty else {
+        let replacements = context.safeFetch(descriptor, context: "word replacements", logger: logger)
+        guard !replacements.isEmpty else {
             return text // No replacements to apply
         }
 
