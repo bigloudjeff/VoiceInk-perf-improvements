@@ -8,6 +8,7 @@ struct TranscriptionHistoryView: View {
     @State private var selectedTranscriptions: Set<Transcription> = []
     @State private var showDeleteConfirmation = false
     @State private var showPinnedDeletionAlert = false
+    @State private var lastClickedTranscription: Transcription?
     @State private var isViewCurrentlyVisible = false
     @State private var showAnalysisView = false
     @State private var isLeftSidebarVisible = true
@@ -328,7 +329,19 @@ struct TranscriptionHistoryView: View {
                                             transcription: transcription,
                                             isSelected: selectedTranscription == transcription,
                                             isChecked: selectedTranscriptions.contains(transcription),
-                                            onSelect: { selectedTranscription = transcription },
+                                            onSelect: {
+                                                let flags = NSEvent.modifierFlags
+                                                if flags.contains(.command) {
+                                                    toggleSelection(transcription)
+                                                    selectedTranscription = transcription
+                                                } else if flags.contains(.shift) {
+                                                    shiftSelectTo(transcription)
+                                                } else {
+                                                    selectedTranscription = transcription
+                                                    selectedTranscriptions = [transcription]
+                                                    lastClickedTranscription = transcription
+                                                }
+                                            },
                                             onToggleCheck: { toggleSelection(transcription) }
                                         )
                                     }
@@ -434,64 +447,62 @@ struct TranscriptionHistoryView: View {
 
     private var selectionToolbar: some View {
         HStack(spacing: 12) {
-            if selectedTranscriptions.isEmpty {
-                Button("Select All") {
+            Button(selectedTranscriptions.isEmpty ? "Select All" : "Deselect All") {
+                if selectedTranscriptions.isEmpty {
                     Task { await selectAllTranscriptions() }
-                }
-                .buttonStyle(.plain)
-                .font(.system(size: 13))
-                .foregroundColor(.secondary)
-                .accessibilityIdentifier(AccessibilityID.History.buttonSelectAll)
-            } else {
-                Button("Deselect All") {
+                } else {
                     selectedTranscriptions.removeAll()
                 }
-                .buttonStyle(.plain)
-                .font(.system(size: 13))
-                .foregroundColor(.secondary)
-                .accessibilityIdentifier(AccessibilityID.History.buttonDeselectAll)
-
-                Divider()
-                    .frame(height: 16)
-
-                Button(action: { togglePinForSelected() }) {
-                    Image(systemName: selectedTranscriptions.allSatisfy(\.isPinned) ? "pin.slash" : "pin.fill")
-                        .font(.system(size: 14, weight: .regular))
-                        .foregroundColor(.secondary)
-                }
-                .buttonStyle(.plain)
-                .help(selectedTranscriptions.allSatisfy(\.isPinned) ? "Unpin" : "Pin")
-                .accessibilityIdentifier(AccessibilityID.History.buttonPin)
-
-                Button(action: { showAnalysisView = true }) {
-                    Image(systemName: "chart.bar.xaxis")
-                        .font(.system(size: 14, weight: .regular))
-                        .foregroundColor(.secondary)
-                }
-                .buttonStyle(.plain)
-                .help("Analyze")
-                .accessibilityIdentifier(AccessibilityID.History.buttonAnalyze)
-
-                Button(action: {
-                    exportService.exportTranscriptionsToCSV(transcriptions: Array(selectedTranscriptions))
-                }) {
-                    Image(systemName: "square.and.arrow.up")
-                        .font(.system(size: 14, weight: .regular))
-                        .foregroundColor(.secondary)
-                }
-                .buttonStyle(.plain)
-                .help("Export")
-                .accessibilityIdentifier(AccessibilityID.History.buttonExport)
-
-                Button(action: { showDeleteConfirmation = true }) {
-                    Image(systemName: "trash")
-                        .font(.system(size: 14, weight: .regular))
-                        .foregroundColor(.secondary)
-                }
-                .buttonStyle(.plain)
-                .help("Delete")
-                .accessibilityIdentifier(AccessibilityID.History.buttonDelete)
             }
+            .buttonStyle(.plain)
+            .font(.system(size: 13))
+            .foregroundColor(.secondary)
+            .accessibilityIdentifier(selectedTranscriptions.isEmpty ? AccessibilityID.History.buttonSelectAll : AccessibilityID.History.buttonDeselectAll)
+
+            Divider()
+                .frame(height: 16)
+
+            Button(action: { togglePinForSelected() }) {
+                Image(systemName: !selectedTranscriptions.isEmpty && selectedTranscriptions.allSatisfy(\.isPinned) ? "pin.slash" : "pin.fill")
+                    .font(.system(size: 14, weight: .regular))
+                    .foregroundColor(.secondary)
+            }
+            .buttonStyle(.plain)
+            .help(!selectedTranscriptions.isEmpty && selectedTranscriptions.allSatisfy(\.isPinned) ? "Unpin" : "Pin")
+            .accessibilityIdentifier(AccessibilityID.History.buttonPin)
+            .disabled(selectedTranscriptions.isEmpty)
+
+            Button(action: { showAnalysisView = true }) {
+                Image(systemName: "chart.bar.xaxis")
+                    .font(.system(size: 14, weight: .regular))
+                    .foregroundColor(.secondary)
+            }
+            .buttonStyle(.plain)
+            .help("Analyze")
+            .accessibilityIdentifier(AccessibilityID.History.buttonAnalyze)
+            .disabled(selectedTranscriptions.isEmpty)
+
+            Button(action: {
+                exportService.exportTranscriptionsToCSV(transcriptions: Array(selectedTranscriptions))
+            }) {
+                Image(systemName: "square.and.arrow.up")
+                    .font(.system(size: 14, weight: .regular))
+                    .foregroundColor(.secondary)
+            }
+            .buttonStyle(.plain)
+            .help("Export")
+            .accessibilityIdentifier(AccessibilityID.History.buttonExport)
+            .disabled(selectedTranscriptions.isEmpty)
+
+            Button(action: { showDeleteConfirmation = true }) {
+                Image(systemName: "trash")
+                    .font(.system(size: 14, weight: .regular))
+                    .foregroundColor(.secondary)
+            }
+            .buttonStyle(.plain)
+            .help("Delete")
+            .accessibilityIdentifier(AccessibilityID.History.buttonDelete)
+            .disabled(selectedTranscriptions.isEmpty)
 
             Spacer()
 
@@ -640,6 +651,27 @@ struct TranscriptionHistoryView: View {
         } else {
             selectedTranscriptions.insert(transcription)
         }
+        lastClickedTranscription = transcription
+    }
+
+    private func shiftSelectTo(_ transcription: Transcription) {
+        guard let anchor = lastClickedTranscription else {
+            selectedTranscription = transcription
+            selectedTranscriptions = [transcription]
+            lastClickedTranscription = transcription
+            return
+        }
+        let allItems = filteredTranscriptions
+        guard let anchorIdx = allItems.firstIndex(where: { $0.id == anchor.id }),
+              let targetIdx = allItems.firstIndex(where: { $0.id == transcription.id }) else {
+            selectedTranscription = transcription
+            selectedTranscriptions = [transcription]
+            lastClickedTranscription = transcription
+            return
+        }
+        let range = min(anchorIdx, targetIdx)...max(anchorIdx, targetIdx)
+        selectedTranscriptions = Set(allItems[range])
+        selectedTranscription = transcription
     }
 
     private func selectAllTranscriptions() async {
