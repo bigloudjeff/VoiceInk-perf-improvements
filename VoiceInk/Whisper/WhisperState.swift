@@ -46,7 +46,7 @@ class WhisperState: NSObject, ObservableObject, WhisperContextProvider {
  miniWindowManager = nil
  }
  Task { @MainActor in
- try? await Task.sleep(nanoseconds: 50_000_000)
+ try? await Task.sleep(for: .milliseconds(50))
  showRecorderPanel()
  }
  }
@@ -369,7 +369,7 @@ class WhisperState: NSObject, ObservableObject, WhisperContextProvider {
  Task {
  let isSystemMuteEnabled = UserDefaults.standard.bool(forKey: UserDefaults.Keys.isSystemMuteEnabled)
  if isSystemMuteEnabled {
- try? await Task.sleep(nanoseconds: 200_000_000) // 200 milliseconds delay
+ try? await Task.sleep(for: .milliseconds(200))
  }
  await MainActor.run {
  SoundManager.shared.playStopSound()

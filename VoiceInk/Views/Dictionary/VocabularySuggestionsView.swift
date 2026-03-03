@@ -1,7 +1,9 @@
 import SwiftUI
 import SwiftData
+import os
 
 struct VocabularySuggestionsView: View {
+ private static let logger = Logger(subsystem: "com.prakashjoshipax.voiceink", category: "VocabularySuggestionsView")
  @Query(
   filter: #Predicate<VocabularySuggestion> { $0.status == "pending" },
   sort: \VocabularySuggestion.occurrenceCount,
@@ -128,6 +130,7 @@ struct VocabularySuggestionsView: View {
    try modelContext.save()
    NotificationCenter.default.post(name: .promptDidChange, object: nil)
   } catch {
+   Self.logger.error("Failed to save approved suggestion: \(error.localizedDescription, privacy: .public)")
    modelContext.delete(newWord)
    suggestion.status = "pending"
    modelContext.rollback()
@@ -140,6 +143,7 @@ struct VocabularySuggestionsView: View {
   do {
    try modelContext.save()
   } catch {
+   Self.logger.error("Failed to save dismissed suggestion: \(error.localizedDescription, privacy: .public)")
    suggestion.status = "pending"
    modelContext.rollback()
   }
@@ -158,6 +162,7 @@ struct VocabularySuggestionsView: View {
    try modelContext.save()
    NotificationCenter.default.post(name: .promptDidChange, object: nil)
   } catch {
+   Self.logger.error("Failed to save approved suggestions batch: \(error.localizedDescription, privacy: .public)")
    for word in insertedWords {
     modelContext.delete(word)
    }
@@ -173,6 +178,7 @@ struct VocabularySuggestionsView: View {
   do {
    try modelContext.save()
   } catch {
+   Self.logger.error("Failed to save dismissed suggestions batch: \(error.localizedDescription, privacy: .public)")
    modelContext.rollback()
   }
  }

@@ -23,6 +23,13 @@ struct ModelSettingsView: View {
                 
                 Spacer()
                 
+                if isEditing {
+                    Button("Cancel") {
+                        isEditing = false
+                    }
+                    .font(.caption)
+                }
+
                 Button(action: {
                     if isEditing {
                         // Save changes

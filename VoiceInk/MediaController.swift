@@ -56,7 +56,7 @@ final class MediaController: ObservableObject {
 
         let task = Task { [weak self] in
             if delay > 0 {
-                try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
+                try? await Task.sleep(for: .seconds(delay))
             }
 
             guard let self = self else { return }

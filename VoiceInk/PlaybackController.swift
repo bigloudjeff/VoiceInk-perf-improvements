@@ -72,7 +72,7 @@ class PlaybackController: ObservableObject {
         wasPlayingWhenRecordingStarted = true
         originalMediaAppBundleId = bundleId
 
-        try? await Task.sleep(nanoseconds: 50_000_000)
+        try? await Task.sleep(for: .milliseconds(50))
 
         mediaController.pause()
     }
@@ -105,7 +105,7 @@ class PlaybackController: ObservableObject {
         }
 
         let task = Task {
-            try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
+            try? await Task.sleep(for: .seconds(delay))
 
             if Task.isCancelled {
                 return

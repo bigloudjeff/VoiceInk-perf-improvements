@@ -40,7 +40,7 @@ class VocabularySuggestionService: NSObject {
   guard let transcriptionId = notification.userInfo?["transcriptionId"] as? UUID else { return }
   // Brief delay to ensure the persistent store has flushed the write from the enhancement queue's context
   Task {
-   try? await Task.sleep(nanoseconds: 500_000_000)
+   try? await Task.sleep(for: .milliseconds(500))
    self.processTranscription(id: transcriptionId)
   }
  }

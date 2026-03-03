@@ -52,10 +52,6 @@ enum ConfigurationMode: Hashable {
  }
 }
 
-enum ConfigurationType {
- case application
- case website
-}
 
 let commonEmojis = ["", "", "", "", "", "", "", "", "️", "", "", "️", "", "", "", "", "", "", "", ""]
 

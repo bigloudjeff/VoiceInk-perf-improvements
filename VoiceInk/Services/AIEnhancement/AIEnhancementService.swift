@@ -200,7 +200,7 @@ class AIEnhancementService: ObservableObject {
         if let lastRequest = lastRequestTime {
             let timeSinceLastRequest = Date().timeIntervalSince(lastRequest)
             if timeSinceLastRequest < rateLimitInterval {
-                try await Task.sleep(nanoseconds: UInt64((rateLimitInterval - timeSinceLastRequest) * 1_000_000_000))
+                try await Task.sleep(for: .seconds(rateLimitInterval - timeSinceLastRequest))
             }
         }
         lastRequestTime = Date()
@@ -368,7 +368,7 @@ class AIEnhancementService: ObservableObject {
                     retries += 1
                     if retries < maxRetries {
                         logger.warning("Request failed, retrying in \(currentDelay, privacy: .public)s... (Attempt \(retries, privacy: .public)/\(maxRetries, privacy: .public))")
-                        try await Task.sleep(nanoseconds: UInt64(currentDelay * 1_000_000_000))
+                        try await Task.sleep(for: .seconds(currentDelay))
                         currentDelay *= 2
                     } else {
                         logger.error("Request failed after \(maxRetries, privacy: .public) retries.")
@@ -383,7 +383,7 @@ class AIEnhancementService: ObservableObject {
                     retries += 1
                     if retries < maxRetries {
                         logger.warning("Request failed with network error, retrying in \(currentDelay, privacy: .public)s... (Attempt \(retries, privacy: .public)/\(maxRetries, privacy: .public))")
-                        try await Task.sleep(nanoseconds: UInt64(currentDelay * 1_000_000_000))
+                        try await Task.sleep(for: .seconds(currentDelay))
                         currentDelay *= 2
                     } else {
                         logger.error("Request failed after \(maxRetries, privacy: .public) retries with network error.")

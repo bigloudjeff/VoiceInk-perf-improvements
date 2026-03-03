@@ -255,7 +255,7 @@ class StreamingTranscriptionService {
             }
 
             group.addTask {
-                try? await Task.sleep(nanoseconds: 10_000_000_000) // 10 seconds
+                try? await Task.sleep(for: .seconds(10))
                 return false
             }
 

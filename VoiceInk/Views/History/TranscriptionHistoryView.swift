@@ -257,6 +257,7 @@ struct TranscriptionHistoryView: View {
                                 .foregroundColor(.secondary)
                         }
                         .buttonStyle(.plain)
+                        .accessibilityLabel("Clear all filters")
                         .accessibilityIdentifier(AccessibilityID.History.buttonClearFilters)
                     }
 

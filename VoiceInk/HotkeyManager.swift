@@ -255,7 +255,7 @@ class HotkeyManager: ObservableObject {
         }
 
         Task { @MainActor in
-            try? await Task.sleep(nanoseconds: 100_000_000)
+            try? await Task.sleep(for: .milliseconds(100))
             self.setupHotkeyMonitoring()
         }
     }
@@ -298,8 +298,7 @@ class HotkeyManager: ObservableObject {
             self.middleClickTask?.cancel()
             self.middleClickTask = Task {
                 do {
-                    let delay = UInt64(self.middleClickActivationDelay) * 1_000_000 // ms to ns
-                    try await Task.sleep(nanoseconds: delay)
+                    try await Task.sleep(for: .milliseconds(self.middleClickActivationDelay))
                     
                     guard self.isMiddleClickToggleEnabled, !Task.isCancelled else { return }
                     
@@ -414,7 +413,7 @@ class HotkeyManager: ObservableObject {
             pendingFnEventTime = eventTime
             fnDebounceTask?.cancel()
             fnDebounceTask = Task { [pendingState = isComboActive, pendingTime = eventTime] in
-                try? await Task.sleep(nanoseconds: 40_000_000) // 40ms
+                try? await Task.sleep(for: .milliseconds(40))
                 if self.pendingFnKeyState == pendingState {
                     await self.processKeyPress(isKeyPressed: pendingState, eventTime: pendingTime)
                 }
