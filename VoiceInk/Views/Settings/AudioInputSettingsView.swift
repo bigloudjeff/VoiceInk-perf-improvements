@@ -413,6 +413,7 @@ struct DevicePriorityCard: View {
                         }
                         .disabled(!canMoveUp)
                         .help("Move up")
+                        .accessibilityLabel("Move device up in priority")
 
                         Button(action: onMoveDown) {
                             Image(systemName: "chevron.down")
@@ -420,6 +421,7 @@ struct DevicePriorityCard: View {
                         }
                         .disabled(!canMoveDown)
                         .help("Move down")
+                        .accessibilityLabel("Move device down in priority")
                     }
                 }
                 
@@ -430,6 +432,7 @@ struct DevicePriorityCard: View {
                         .foregroundStyle(isPrioritized ? .red : .blue)
                 }
                 .help(isPrioritized ? "Remove from priority list" : "Add to priority list")
+                .accessibilityLabel(isPrioritized ? "Remove device from priority list" : "Add device to priority list")
             }
             .buttonStyle(.plain)
         }

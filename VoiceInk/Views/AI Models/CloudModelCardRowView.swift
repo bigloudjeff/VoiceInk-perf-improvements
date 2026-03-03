@@ -335,12 +335,8 @@ struct CloudModelCardView: View {
 
         // If this model is currently the default, clear it
         if isCurrent {
-            Task {
-                await MainActor.run {
-                    whisperState.currentTranscriptionModel = nil
-                    UserDefaults.standard.removeObject(forKey: UserDefaults.Keys.currentTranscriptionModel)
-                }
-            }
+            whisperState.currentTranscriptionModel = nil
+            UserDefaults.standard.removeObject(forKey: UserDefaults.Keys.currentTranscriptionModel)
         }
 
         withAnimation(.easeInOut(duration: 0.3)) {

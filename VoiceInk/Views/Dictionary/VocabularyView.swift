@@ -379,7 +379,7 @@ struct PhoneticHintReviewSheet: View {
             Divider()
             footerRow
         }
-        .frame(width: 480)
+        .frame(minWidth: 480)
         .frame(minHeight: 300)
         .onAppear {
             for suggestion in suggestions {

@@ -176,6 +176,9 @@ class SetLanguageCommand: NSScriptCommand {
    return "Error: language code parameter required"
   }
   let trimmed = code.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
+  guard PredefinedModels.allLanguages.keys.contains(trimmed) else {
+   return "Error: unknown language code \"\(trimmed)\". Use a valid ISO 639-1 code (e.g. en, es, fr, de, ja) or \"auto\"."
+  }
   UserDefaults.standard.set(trimmed, forKey: UserDefaults.Keys.selectedLanguage)
   NotificationCenter.default.post(name: .languageDidChange, object: nil)
   return trimmed
