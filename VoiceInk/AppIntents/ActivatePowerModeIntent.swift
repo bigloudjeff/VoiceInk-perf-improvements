@@ -12,7 +12,10 @@ struct ActivatePowerModeIntent: AppIntent {
 
  @MainActor
  func perform() async throws -> some IntentResult & ProvidesDialog {
-  let manager = PowerModeManager.shared
+  let locator = AppServiceLocator.shared
+  guard let manager = locator.powerModeProvider else {
+   throw IntentError.serviceNotAvailable
+  }
   let normalizedInput = name.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
 
   guard let config = manager.configurations.first(where: { $0.name.lowercased() == normalizedInput }) else {
@@ -20,8 +23,8 @@ struct ActivatePowerModeIntent: AppIntent {
    return .result(dialog: "Power Mode \"\(name)\" not found. Available: \(available)")
   }
 
-  guard let whisperState = AppServiceLocator.shared.whisperState,
-        let enhancementService = AppServiceLocator.shared.enhancementService else {
+  guard let whisperState = locator.whisperState,
+        let enhancementService = locator.enhancementService else {
    throw IntentError.serviceNotAvailable
   }
 

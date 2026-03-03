@@ -83,14 +83,17 @@ class ActivatePowerModeCommand: NSScriptCommand {
    return "Error: Power Mode name parameter required"
   }
   return MainActor.assumeIsolated {
-   let manager = PowerModeManager.shared
+   let locator = AppServiceLocator.shared
+   guard let manager = locator.powerModeProvider else {
+    return "Service not available"
+   }
    let normalized = name.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
    guard let config = manager.configurations.first(where: { $0.name.lowercased() == normalized }) else {
     let available = manager.configurations.map { $0.name }.joined(separator: ", ")
     return "Error: Power Mode \"\(name)\" not found. Available: \(available)"
    }
-   guard let whisperState = AppServiceLocator.shared.whisperState,
-         let enhancementService = AppServiceLocator.shared.enhancementService else {
+   guard let whisperState = locator.whisperState,
+         let enhancementService = locator.enhancementService else {
     return "Service not available"
    }
    let sessionManager = PowerModeSessionManager.shared
@@ -107,18 +110,19 @@ class ActivatePowerModeCommand: NSScriptCommand {
 class DeactivatePowerModeCommand: NSScriptCommand {
  override func performDefaultImplementation() -> Any? {
   return MainActor.assumeIsolated {
+   let locator = AppServiceLocator.shared
    let sessionManager = PowerModeSessionManager.shared
    guard sessionManager.hasActiveSession else {
     return "No Power Mode active"
    }
-   guard let whisperState = AppServiceLocator.shared.whisperState,
-         let enhancementService = AppServiceLocator.shared.enhancementService else {
+   guard let whisperState = locator.whisperState,
+         let enhancementService = locator.enhancementService else {
     return "Service not available"
    }
    sessionManager.configure(whisperState: whisperState, enhancementService: enhancementService)
    Task { @MainActor in
     await sessionManager.endSession()
-    PowerModeManager.shared.setActiveConfiguration(nil)
+    locator.powerModeProvider?.setActiveConfiguration(nil)
    }
    return "Power Mode deactivating"
   }

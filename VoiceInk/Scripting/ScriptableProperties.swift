@@ -47,7 +47,7 @@ extension NSApplication {
 
  @objc var scriptActivePowerMode: String {
   MainActor.assumeIsolated {
-   return PowerModeManager.shared.activeConfiguration?.name ?? ""
+   return AppServiceLocator.shared.powerModeProvider?.activeConfiguration?.name ?? ""
   }
  }
 }

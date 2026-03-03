@@ -9,20 +9,21 @@ struct DeactivatePowerModeIntent: AppIntent {
 
  @MainActor
  func perform() async throws -> some IntentResult & ProvidesDialog {
+  let locator = AppServiceLocator.shared
   let sessionManager = PowerModeSessionManager.shared
 
   guard sessionManager.hasActiveSession else {
    return .result(dialog: "No Power Mode is currently active")
   }
 
-  guard let whisperState = AppServiceLocator.shared.whisperState,
-        let enhancementService = AppServiceLocator.shared.enhancementService else {
+  guard let whisperState = locator.whisperState,
+        let enhancementService = locator.enhancementService else {
    throw IntentError.serviceNotAvailable
   }
 
   sessionManager.configure(whisperState: whisperState, enhancementService: enhancementService)
   await sessionManager.endSession()
-  PowerModeManager.shared.setActiveConfiguration(nil)
+  locator.powerModeProvider?.setActiveConfiguration(nil)
 
   return .result(dialog: "Power Mode deactivated")
  }
