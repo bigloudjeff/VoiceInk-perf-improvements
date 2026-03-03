@@ -58,7 +58,11 @@ struct TranscriptionListItem: View {
             }
         }
         .contentShape(Rectangle())
+        .accessibilityElement(children: .combine)
+        .accessibilityAddTraits(.isButton)
         .onTapGesture { onSelect() }
+        .focusable()
+        .onKeyPress(.return) { onSelect(); return .handled }
     }
 }
 

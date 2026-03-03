@@ -57,4 +57,42 @@ struct PowerModeURLMatchingTests {
   let result = PowerModeManager.matchURL("https://example.com", in: [config])
   #expect(result == nil)
  }
+
+ // MARK: - Domain boundary matching
+
+ @Test func matchURLRejectsPartialDomainMatch() {
+  var config = PowerModeConfig(name: "Test", emoji: "T", isAIEnhancementEnabled: false)
+  config.isEnabled = true
+  config.urlConfigs = [URLConfig(url: "example.com")]
+
+  let result = PowerModeManager.matchURL("https://notexample.com", in: [config])
+  #expect(result == nil)
+ }
+
+ @Test func matchURLRejectsDomainAsSubdomain() {
+  var config = PowerModeConfig(name: "Test", emoji: "T", isAIEnhancementEnabled: false)
+  config.isEnabled = true
+  config.urlConfigs = [URLConfig(url: "example.com")]
+
+  let result = PowerModeManager.matchURL("https://example.com.evil.com", in: [config])
+  #expect(result == nil)
+ }
+
+ @Test func matchURLAllowsSubdomainMatch() {
+  var config = PowerModeConfig(name: "Test", emoji: "T", isAIEnhancementEnabled: false)
+  config.isEnabled = true
+  config.urlConfigs = [URLConfig(url: "example.com")]
+
+  let result = PowerModeManager.matchURL("https://sub.example.com/page", in: [config])
+  #expect(result?.name == "Test")
+ }
+
+ @Test func matchURLExactDomainMatch() {
+  var config = PowerModeConfig(name: "Test", emoji: "T", isAIEnhancementEnabled: false)
+  config.isEnabled = true
+  config.urlConfigs = [URLConfig(url: "example.com")]
+
+  let result = PowerModeManager.matchURL("https://example.com", in: [config])
+  #expect(result?.name == "Test")
+ }
 }

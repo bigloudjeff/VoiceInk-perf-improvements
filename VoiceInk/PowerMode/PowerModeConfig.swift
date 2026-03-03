@@ -203,19 +203,41 @@ class PowerModeManager: ObservableObject, PowerModeProviding {
         PowerModeManager.matchURL(url, in: configurations)
     }
 
-    /// Pure URL matching: find the first enabled config whose URL pattern matches.
+    /// Pure URL matching: find the first enabled config whose URL pattern matches at a domain boundary.
     static func matchURL(_ url: String, in configs: [PowerModeConfig]) -> PowerModeConfig? {
         let cleanedURL = cleanURL(url)
         for config in configs where config.isEnabled {
             if let urlConfigs = config.urlConfigs {
                 for urlConfig in urlConfigs {
-                    if cleanedURL.contains(cleanURL(urlConfig.url)) {
+                    if urlMatchesPattern(cleanedURL, pattern: cleanURL(urlConfig.url)) {
                         return config
                     }
                 }
             }
         }
         return nil
+    }
+
+    /// Check if a cleaned URL matches a pattern at domain boundaries.
+    /// Prevents "evil-example.com" from matching a pattern of "example.com".
+    static func urlMatchesPattern(_ url: String, pattern: String) -> Bool {
+        guard !pattern.isEmpty else { return false }
+        // Match at start: exact match or pattern followed by path/query/fragment
+        if url.hasPrefix(pattern) {
+            let rest = url.dropFirst(pattern.count)
+            if rest.isEmpty || rest.first == "/" || rest.first == "?" || rest.first == "#" {
+                return true
+            }
+        }
+        // Match after subdomain boundary (e.g. "sub.example.com" matches "example.com")
+        let dotPattern = "." + pattern
+        if let range = url.range(of: dotPattern) {
+            let rest = url[range.upperBound...]
+            if rest.isEmpty || rest.first == "/" || rest.first == "?" || rest.first == "#" {
+                return true
+            }
+        }
+        return false
     }
     
     func getConfigurationForApp(_ bundleId: String) -> PowerModeConfig? {

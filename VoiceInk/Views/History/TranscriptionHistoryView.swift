@@ -32,12 +32,14 @@ struct TranscriptionHistoryView: View {
     private let maxSidebarWidth: CGFloat = 350
     private let pageSize = 20
 
+    private func matchesActiveFilters(_ t: Transcription) -> Bool {
+        if let mode = selectedPowerMode, t.powerModeName != mode { return false }
+        if let model = selectedModelName, t.transcriptionModelName != model { return false }
+        return true
+    }
+
     private var filteredTranscriptions: [Transcription] {
-        displayedTranscriptions.filter { t in
-            if let mode = selectedPowerMode, t.powerModeName != mode { return false }
-            if let model = selectedModelName, t.transcriptionModelName != model { return false }
-            return true
-        }
+        displayedTranscriptions.filter(matchesActiveFilters)
     }
 
     private var groupedTranscriptions: [(header: String, transcriptions: [Transcription])] {
@@ -226,55 +228,23 @@ struct TranscriptionHistoryView: View {
             if !availablePowerModes.isEmpty || !availableModelNames.isEmpty {
                 HStack(spacing: 6) {
                     if !availablePowerModes.isEmpty {
-                        Menu {
-                            Button("All Power Modes") { selectedPowerMode = nil }
-                            Divider()
-                            ForEach(availablePowerModes, id: \.self) { mode in
-                                Button(mode) { selectedPowerMode = mode }
-                            }
-                        } label: {
-                            HStack(spacing: 4) {
-                                Text(selectedPowerMode ?? "Power Mode")
-                                    .lineLimit(1)
-                                Image(systemName: "chevron.down")
-                                    .font(.system(size: 8, weight: .bold))
-                            }
-                            .font(.system(size: 11, weight: selectedPowerMode != nil ? .semibold : .regular))
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 4)
-                            .background(
-                                RoundedRectangle(cornerRadius: 6, style: .continuous)
-                                    .fill(selectedPowerMode != nil ? Color.accentColor.opacity(0.15) : Color.secondary.opacity(0.1))
-                            )
-                        }
-                        .buttonStyle(.plain)
-                        .accessibilityIdentifier(AccessibilityID.History.menuPowerModeFilter)
+                        HistoryFilterMenu(
+                            selection: $selectedPowerMode,
+                            options: availablePowerModes,
+                            placeholder: "Power Mode",
+                            allLabel: "All Power Modes",
+                            accessibilityId: AccessibilityID.History.menuPowerModeFilter
+                        )
                     }
 
                     if !availableModelNames.isEmpty {
-                        Menu {
-                            Button("All Models") { selectedModelName = nil }
-                            Divider()
-                            ForEach(availableModelNames, id: \.self) { model in
-                                Button(model) { selectedModelName = model }
-                            }
-                        } label: {
-                            HStack(spacing: 4) {
-                                Text(selectedModelName ?? "Model")
-                                    .lineLimit(1)
-                                Image(systemName: "chevron.down")
-                                    .font(.system(size: 8, weight: .bold))
-                            }
-                            .font(.system(size: 11, weight: selectedModelName != nil ? .semibold : .regular))
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 4)
-                            .background(
-                                RoundedRectangle(cornerRadius: 6, style: .continuous)
-                                    .fill(selectedModelName != nil ? Color.accentColor.opacity(0.15) : Color.secondary.opacity(0.1))
-                            )
-                        }
-                        .buttonStyle(.plain)
-                        .accessibilityIdentifier(AccessibilityID.History.menuModelFilter)
+                        HistoryFilterMenu(
+                            selection: $selectedModelName,
+                            options: availableModelNames,
+                            placeholder: "Model",
+                            allLabel: "All Models",
+                            accessibilityId: AccessibilityID.History.menuModelFilter
+                        )
                     }
 
                     if selectedPowerMode != nil || selectedModelName != nil {
@@ -704,12 +674,7 @@ struct TranscriptionHistoryView: View {
             }
 
             let allTranscriptions = try modelContext.fetch(allDescriptor)
-
-            let filtered = allTranscriptions.filter { t in
-                if let mode = selectedPowerMode, t.powerModeName != mode { return false }
-                if let model = selectedModelName, t.transcriptionModelName != model { return false }
-                return true
-            }
+            let filtered = allTranscriptions.filter(matchesActiveFilters)
 
             await MainActor.run {
                 selectedTranscriptions = Set(filtered)
@@ -717,5 +682,41 @@ struct TranscriptionHistoryView: View {
         } catch {
             Self.logger.error("Error selecting all transcriptions: \(error.localizedDescription, privacy: .public)")
         }
+    }
+}
+
+// MARK: - Filter Menu Component
+
+private struct HistoryFilterMenu: View {
+    @Binding var selection: String?
+    let options: [String]
+    let placeholder: String
+    let allLabel: String
+    let accessibilityId: String
+
+    var body: some View {
+        Menu {
+            Button(allLabel) { selection = nil }
+            Divider()
+            ForEach(options, id: \.self) { option in
+                Button(option) { selection = option }
+            }
+        } label: {
+            HStack(spacing: 4) {
+                Text(selection ?? placeholder)
+                    .lineLimit(1)
+                Image(systemName: "chevron.down")
+                    .font(.system(size: 8, weight: .bold))
+            }
+            .font(.system(size: 11, weight: selection != nil ? .semibold : .regular))
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
+            .background(
+                RoundedRectangle(cornerRadius: 6, style: .continuous)
+                    .fill(selection != nil ? Color.accentColor.opacity(0.15) : Color.secondary.opacity(0.1))
+            )
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier(accessibilityId)
     }
 }
