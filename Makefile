@@ -3,7 +3,7 @@ DEPS_DIR := $(HOME)/VoiceInk-Dependencies
 WHISPER_CPP_DIR := $(DEPS_DIR)/whisper.cpp
 FRAMEWORK_PATH := $(WHISPER_CPP_DIR)/build-apple/whisper.xcframework
 
-.PHONY: all clean whisper setup build local check healthcheck help dev run
+.PHONY: all clean whisper setup build local check healthcheck help dev run test
 
 # Default target
 all: check build
@@ -69,6 +69,16 @@ local: check setup
 		exit 1; \
 	fi
 
+# Run unit tests
+test: check setup
+	@echo "Running VoiceInk unit tests..."
+	xcodebuild test -project VoiceInk.xcodeproj -scheme VoiceInk -configuration Debug \
+		-xcconfig LocalBuild.xcconfig \
+		CODE_SIGN_ENTITLEMENTS=$(CURDIR)/VoiceInk/VoiceInk.local.entitlements \
+		SWIFT_ACTIVE_COMPILATION_CONDITIONS='$$(inherited) LOCAL_BUILD' \
+		-destination 'platform=macOS' \
+		-only-testing:VoiceInkTests
+
 # Run application
 run:
 	@if [ -d "$$HOME/Downloads/VoiceInk.app" ]; then \
@@ -101,6 +111,7 @@ help:
 	@echo "  build              Build the VoiceInk Xcode project"
 	@echo "  local              Build for local use (no Apple Developer certificate needed)"
 	@echo "  run                Launch the built VoiceInk app"
+	@echo "  test               Run unit tests"
 	@echo "  dev                Build and run the app (for development)"
 	@echo "  all                Run full build process (default)"
 	@echo "  clean              Remove build artifacts"
