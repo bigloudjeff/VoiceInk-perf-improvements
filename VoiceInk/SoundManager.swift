@@ -3,7 +3,7 @@ import AVFoundation
 import SwiftUI
 
 @MainActor
-class SoundManager: ObservableObject {
+class SoundManager: ObservableObject, SoundPlaying {
     static let shared = SoundManager()
 
     private var startSound: AVAudioPlayer?

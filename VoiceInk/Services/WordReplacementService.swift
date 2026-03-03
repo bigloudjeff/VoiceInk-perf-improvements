@@ -2,7 +2,7 @@ import Foundation
 import SwiftData
 import os
 
-class WordReplacementService {
+class WordReplacementService: WordReplacing {
     static let shared = WordReplacementService()
     private let logger = Logger(subsystem: "com.prakashjoshipax.voiceink", category: "WordReplacementService")
 

@@ -1,7 +1,7 @@
 import SwiftUI
 import AppKit
 
-class NotificationManager {
+class NotificationManager: NotificationPresenting {
     static let shared = NotificationManager()
 
     private var notificationWindow: NSPanel?

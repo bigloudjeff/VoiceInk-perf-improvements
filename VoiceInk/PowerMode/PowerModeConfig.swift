@@ -131,7 +131,7 @@ struct URLConfig: Codable, Identifiable, Equatable {
     }
 }
 
-class PowerModeManager: ObservableObject {
+class PowerModeManager: ObservableObject, PowerModeProviding {
     static let shared = PowerModeManager()
     private let logger = Logger(subsystem: "com.prakashjoshipax.voiceink", category: "PowerModeManager")
     @Published var configurations: [PowerModeConfig] = []
