@@ -93,6 +93,7 @@ class WhisperState: NSObject, ObservableObject, WhisperContextProvider {
  var recordedFile: URL? = nil
  let whisperPrompt = WhisperPrompt()
  private(set) var localModelManager: LocalModelManager!
+ private(set) var parakeetModelManager = ParakeetModelManager()
  
  // Prompt detection service for trigger word handling
  private let promptDetectionService = PromptDetectionService()
@@ -150,9 +151,10 @@ class WhisperState: NSObject, ObservableObject, WhisperContextProvider {
  PowerModeSessionManager.shared.configure(whisperState: self, enhancementService: enhancementService)
  }
 
- // Initialize the local model manager
+ // Initialize sub-managers
  self.localModelManager = LocalModelManager(modelsDirectory: self.modelsDirectory, modelContext: self.modelContext)
  self.localModelManager.delegate = self
+ self.parakeetModelManager.delegate = self
 
  // Initialize the transcription service registry
  self.serviceRegistry = TranscriptionServiceRegistry(contextProvider: self, modelContext: self.modelContext, modelsDirectory: self.modelsDirectory)

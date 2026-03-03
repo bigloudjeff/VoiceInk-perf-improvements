@@ -1,100 +1,62 @@
 import Foundation
-import FluidAudio
-import AppKit
+
+// MARK: - WhisperState Parakeet Wrappers (delegate to ParakeetModelManager)
 
 extension WhisperState {
-    private func parakeetDefaultsKey(for modelName: String) -> String {
-        "ParakeetModelDownloaded_\(modelName)"
-    }
 
-    private func parakeetVersion(for modelName: String) -> AsrModelVersion {
-        modelName.lowercased().contains("v2") ? .v2 : .v3
-    }
+ func isParakeetModelDownloaded(named modelName: String) -> Bool {
+  parakeetModelManager.isModelDownloaded(named: modelName)
+ }
 
-    private func parakeetCacheDirectory(for version: AsrModelVersion) -> URL {
-        AsrModels.defaultCacheDirectory(for: version)
-    }
+ func isParakeetModelDownloaded(_ model: ParakeetModel) -> Bool {
+  parakeetModelManager.isModelDownloaded(model)
+ }
 
-    func isParakeetModelDownloaded(named modelName: String) -> Bool {
-        UserDefaults.standard.bool(forKey: parakeetDefaultsKey(for: modelName))
-    }
+ func isParakeetModelDownloading(_ model: ParakeetModel) -> Bool {
+  parakeetModelManager.isModelDownloading(model)
+ }
 
-    func isParakeetModelDownloaded(_ model: ParakeetModel) -> Bool {
-        isParakeetModelDownloaded(named: model.name)
-    }
+ func downloadParakeetModel(_ model: ParakeetModel) async {
+  await parakeetModelManager.downloadModel(model)
+ }
 
-    func isParakeetModelDownloading(_ model: ParakeetModel) -> Bool {
-        parakeetDownloadStates[model.name] ?? false
-    }
+ func deleteParakeetModel(_ model: ParakeetModel) {
+  parakeetModelManager.deleteModel(model, currentTranscriptionModelName: currentTranscriptionModel?.name)
+ }
 
-    @MainActor
-    func downloadParakeetModel(_ model: ParakeetModel) async {
-        if isParakeetModelDownloaded(model) {
-            return
-        }
+ func showParakeetModelInFinder(_ model: ParakeetModel) {
+  parakeetModelManager.showModelInFinder(model)
+ }
+}
 
-        let modelName = model.name
-        parakeetDownloadStates[modelName] = true
-        downloadProgress[modelName] = 0.0
+// MARK: - ParakeetModelManagerDelegate
 
-        let timer = Timer.scheduledTimer(withTimeInterval: 1.2, repeats: true) { timer in
-            Task { @MainActor in
-                if let currentProgress = self.downloadProgress[modelName], currentProgress < 0.9 {
-                    self.downloadProgress[modelName] = currentProgress + 0.005
-                }
-            }
-        }
+extension WhisperState: ParakeetModelManagerDelegate {
 
-        let version = parakeetVersion(for: modelName)
+ func parakeetManagerDidUpdateDownloadStates(_ states: [String: Bool]) {
+  self.parakeetDownloadStates = states
+ }
 
-        do {
-            _ = try await AsrModels.downloadAndLoad(version: version)
+ func parakeetManagerSetDownloadProgress(key: String, value: Double) {
+  downloadProgress[key] = value
+ }
 
-            _ = try await VadManager()
+ func parakeetManagerRemoveDownloadProgress(key: String) {
+  downloadProgress.removeValue(forKey: key)
+ }
 
-            UserDefaults.standard.set(true, forKey: parakeetDefaultsKey(for: modelName))
-            downloadProgress[modelName] = 1.0
-        } catch {
-            UserDefaults.standard.set(false, forKey: parakeetDefaultsKey(for: modelName))
-        }
+ func parakeetManagerIncrementProgress(key: String, increment: Double, cap: Double) {
+  if let current = downloadProgress[key], current < cap {
+   downloadProgress[key] = current + increment
+  }
+ }
 
-        timer.invalidate()
-        parakeetDownloadStates[modelName] = false
-        downloadProgress[modelName] = nil
+ func parakeetManagerDidDeleteCurrentModel(named: String) {
+  currentTranscriptionModel = nil
+  UserDefaults.standard.removeObject(forKey: UserDefaults.Keys.currentTranscriptionModel)
+ }
 
-        refreshAllAvailableModels()
-    }
-
-    @MainActor
-    func deleteParakeetModel(_ model: ParakeetModel) {
-        if let currentModel = currentTranscriptionModel,
-           currentModel.provider == .parakeet,
-           currentModel.name == model.name {
-            currentTranscriptionModel = nil
-            UserDefaults.standard.removeObject(forKey: UserDefaults.Keys.currentTranscriptionModel)
-        }
-
-        let version = parakeetVersion(for: model.name)
-        let cacheDirectory = parakeetCacheDirectory(for: version)
-
-        do {
-            if FileManager.default.fileExists(atPath: cacheDirectory.path) {
-                try FileManager.default.removeItem(at: cacheDirectory)
-            }
-            UserDefaults.standard.set(false, forKey: parakeetDefaultsKey(for: model.name))
-        } catch {
-            // Silently ignore removal errors
-        }
-
-        refreshAllAvailableModels()
-    }
-
-    @MainActor
-    func showParakeetModelInFinder(_ model: ParakeetModel) {
-        let cacheDirectory = parakeetCacheDirectory(for: parakeetVersion(for: model.name))
-
-        if FileManager.default.fileExists(atPath: cacheDirectory.path) {
-            NSWorkspace.shared.selectFile(cacheDirectory.path, inFileViewerRootedAtPath: "")
-        }
-    }
+ func parakeetManagerRequestRefreshAllModels() {
+  refreshAllAvailableModels()
+ }
 }
