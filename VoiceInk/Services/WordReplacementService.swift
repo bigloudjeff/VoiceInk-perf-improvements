@@ -21,18 +21,22 @@ class WordReplacementService: WordReplacing {
 
         let replacements = context.safeFetch(descriptor, context: "word replacements", logger: logger)
         guard !replacements.isEmpty else {
-            return text // No replacements to apply
+            return text
         }
+
+        let pairs = replacements.map { (originalText: $0.originalText, replacementText: $0.replacementText) }
+        return applyReplacements(to: text, pairs: pairs)
+    }
+
+    /// Pure transformation: apply replacement pairs to text without SwiftData dependency.
+    /// Each pair's `originalText` may be comma-separated for multiple variants.
+    func applyReplacements(to text: String, pairs: [(originalText: String, replacementText: String)]) -> String {
+        guard !pairs.isEmpty else { return text }
 
         var modifiedText = text
 
-        // Apply replacements (case-insensitive)
-        for replacement in replacements {
-            let originalGroup = replacement.originalText
-            let replacementText = replacement.replacementText
-
-            // Split comma-separated originals at apply time only
-            let variants = originalGroup
+        for pair in pairs {
+            let variants = pair.originalText
                 .split(separator: ",")
                 .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
                 .filter { !$0.isEmpty }
@@ -48,12 +52,11 @@ class WordReplacementService: WordReplacing {
                             in: modifiedText,
                             options: [],
                             range: range,
-                            withTemplate: replacementText
+                            withTemplate: pair.replacementText
                         )
                     }
                 } else {
-                    // Fallback substring replace for non-spaced scripts
-                    modifiedText = modifiedText.replacingOccurrences(of: original, with: replacementText, options: .caseInsensitive)
+                    modifiedText = modifiedText.replacingOccurrences(of: original, with: pair.replacementText, options: .caseInsensitive)
                 }
             }
         }

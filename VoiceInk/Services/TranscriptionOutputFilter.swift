@@ -25,15 +25,7 @@ struct TranscriptionOutputFilter {
  }
 
  // Remove filler words (if enabled)
- if FillerWordManager.shared.isEnabled {
- for fillerWord in FillerWordManager.shared.fillerWords {
- let pattern = "\\b\(NSRegularExpression.escapedPattern(for: fillerWord))\\b[,.]?"
- if let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive) {
- let range = NSRange(filteredText.startIndex..., in: filteredText)
- filteredText = regex.stringByReplacingMatches(in: filteredText, options: [], range: range, withTemplate: "")
- }
- }
- }
+ filteredText = removeFillerWords(from: filteredText, isEnabled: FillerWordManager.shared.isEnabled, fillerWords: FillerWordManager.shared.fillerWords)
 
  // Clean whitespace
  filteredText = filteredText.replacingOccurrences(of: #"\s{2,}"#, with: " ", options: .regularExpression)
@@ -48,4 +40,18 @@ struct TranscriptionOutputFilter {
 
  return filteredText
  }
-} 
+
+ /// Remove filler words from text. Parameterized for testability.
+ static func removeFillerWords(from text: String, isEnabled: Bool, fillerWords: [String]) -> String {
+ guard isEnabled, !fillerWords.isEmpty else { return text }
+ var result = text
+ for fillerWord in fillerWords {
+  let pattern = "\\b\(NSRegularExpression.escapedPattern(for: fillerWord))\\b[,.]?"
+  if let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive) {
+  let range = NSRange(result.startIndex..., in: result)
+  result = regex.stringByReplacingMatches(in: result, options: [], range: range, withTemplate: "")
+  }
+ }
+ return result
+ }
+}

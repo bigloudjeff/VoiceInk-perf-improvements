@@ -200,14 +200,16 @@ class PowerModeManager: ObservableObject, PowerModeProviding {
     }
 
     func getConfigurationForURL(_ url: String) -> PowerModeConfig? {
+        PowerModeManager.matchURL(url, in: configurations)
+    }
+
+    /// Pure URL matching: find the first enabled config whose URL pattern matches.
+    static func matchURL(_ url: String, in configs: [PowerModeConfig]) -> PowerModeConfig? {
         let cleanedURL = cleanURL(url)
-        
-        for config in configurations.filter({ $0.isEnabled }) {
+        for config in configs where config.isEnabled {
             if let urlConfigs = config.urlConfigs {
                 for urlConfig in urlConfigs {
-                    let configURL = cleanURL(urlConfig.url)
-                    
-                    if cleanedURL.contains(configURL) {
+                    if cleanedURL.contains(cleanURL(urlConfig.url)) {
                         return config
                     }
                 }
@@ -299,12 +301,16 @@ class PowerModeManager: ObservableObject, PowerModeProviding {
         }
     }
 
-    func cleanURL(_ url: String) -> String {
-        return url.lowercased()
+    static func cleanURL(_ url: String) -> String {
+        url.lowercased()
             .replacingOccurrences(of: "https://", with: "")
             .replacingOccurrences(of: "http://", with: "")
             .replacingOccurrences(of: "www.", with: "")
             .trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    func cleanURL(_ url: String) -> String {
+        Self.cleanURL(url)
     }
 
     func setActiveConfiguration(_ config: PowerModeConfig?) {
