@@ -92,6 +92,7 @@ class WhisperState: NSObject, ObservableObject, WhisperContextProvider {
  let recorder = Recorder()
  var recordedFile: URL? = nil
  let whisperPrompt = WhisperPrompt()
+ private(set) var localModelManager: LocalModelManager!
  
  // Prompt detection service for trigger word handling
  private let promptDetectionService = PromptDetectionService()
@@ -149,13 +150,17 @@ class WhisperState: NSObject, ObservableObject, WhisperContextProvider {
  PowerModeSessionManager.shared.configure(whisperState: self, enhancementService: enhancementService)
  }
 
+ // Initialize the local model manager
+ self.localModelManager = LocalModelManager(modelsDirectory: self.modelsDirectory, modelContext: self.modelContext)
+ self.localModelManager.delegate = self
+
  // Initialize the transcription service registry
  self.serviceRegistry = TranscriptionServiceRegistry(contextProvider: self, modelContext: self.modelContext, modelsDirectory: self.modelsDirectory)
- 
+
  setupNotifications()
- createModelsDirectoryIfNeeded()
+ localModelManager.createModelsDirectoryIfNeeded()
  createRecordingsDirectoryIfNeeded()
- loadAvailableModels()
+ localModelManager.loadAvailableModels()
  loadCurrentTranscriptionModel()
  refreshAllAvailableModels()
  }
