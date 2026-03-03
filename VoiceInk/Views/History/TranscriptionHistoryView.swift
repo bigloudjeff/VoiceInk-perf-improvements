@@ -25,6 +25,7 @@ struct TranscriptionHistoryView: View {
     @State private var availableModelNames: [String] = []
 
     private let exportService = VoiceInkCSVExportService()
+    private let fileExportService = TranscriptionFileExportService()
     private let minSidebarWidth: CGFloat = 200
     private let maxSidebarWidth: CGFloat = 350
     private let pageSize = 20
@@ -447,16 +448,20 @@ struct TranscriptionHistoryView: View {
 
     private var selectionToolbar: some View {
         HStack(spacing: 12) {
-            Button(selectedTranscriptions.isEmpty ? "Select All" : "Deselect All") {
+            Button(action: {
                 if selectedTranscriptions.isEmpty {
                     Task { await selectAllTranscriptions() }
                 } else {
                     selectedTranscriptions.removeAll()
                 }
+            }) {
+                Image(systemName: selectedTranscriptions.isEmpty ? "circle" : "checkmark.circle.fill")
+                    .symbolRenderingMode(.hierarchical)
+                    .foregroundColor(selectedTranscriptions.isEmpty ? .secondary : Color(NSColor.controlAccentColor))
+                    .font(.system(size: 18))
             }
             .buttonStyle(.plain)
-            .font(.system(size: 13))
-            .foregroundColor(.secondary)
+            .help(selectedTranscriptions.isEmpty ? "Select All" : "Deselect All")
             .accessibilityIdentifier(selectedTranscriptions.isEmpty ? AccessibilityID.History.buttonSelectAll : AccessibilityID.History.buttonDeselectAll)
 
             Divider()
@@ -482,14 +487,21 @@ struct TranscriptionHistoryView: View {
             .accessibilityIdentifier(AccessibilityID.History.buttonAnalyze)
             .disabled(selectedTranscriptions.isEmpty)
 
-            Button(action: {
-                exportService.exportTranscriptionsToCSV(transcriptions: Array(selectedTranscriptions))
-            }) {
+            Menu {
+                Button("Export as CSV") {
+                    exportService.exportTranscriptionsToCSV(transcriptions: Array(selectedTranscriptions))
+                }
+                Button("Export as Files") {
+                    fileExportService.exportAsFiles(Array(selectedTranscriptions))
+                }
+            } label: {
                 Image(systemName: "square.and.arrow.up")
                     .font(.system(size: 14, weight: .regular))
                     .foregroundColor(.secondary)
             }
-            .buttonStyle(.plain)
+            .menuStyle(.borderlessButton)
+            .menuIndicator(.hidden)
+            .fixedSize()
             .help("Export")
             .accessibilityIdentifier(AccessibilityID.History.buttonExport)
             .disabled(selectedTranscriptions.isEmpty)

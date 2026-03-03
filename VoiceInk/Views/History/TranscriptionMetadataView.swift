@@ -4,7 +4,7 @@ import SwiftData
 struct TranscriptionMetadataView: View {
     @Environment(\.modelContext) private var modelContext
     let transcription: Transcription
-    private let entryExportService = TranscriptionEntryExportService()
+    private let fileExportService = TranscriptionFileExportService()
 
     var body: some View {
         ScrollView {
@@ -169,7 +169,7 @@ struct TranscriptionMetadataView: View {
                 )
 
                 Button(action: {
-                    entryExportService.exportEntry(transcription)
+                    fileExportService.exportAsFiles([transcription])
                 }) {
                     HStack {
                         Image(systemName: "square.and.arrow.up")
