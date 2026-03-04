@@ -9,6 +9,7 @@ enum AccessibilityID {
 
  enum Sidebar {
   static let list = "sidebar.list"
+  static let searchField = "sidebar.field.search"
   static func navLink(_ viewType: String) -> String { "sidebar.navLink.\(viewType)" }
   static let navLinkDashboard = "sidebar.navLink.dashboard"
   static let navLinkTranscribeAudio = "sidebar.navLink.transcribeAudio"

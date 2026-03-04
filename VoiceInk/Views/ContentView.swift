@@ -62,6 +62,8 @@ struct ContentView: View {
     @EnvironmentObject private var hotkeyManager: HotkeyManager
     @AppStorage(UserDefaults.Keys.powerModeUIFlag) private var powerModeUIFlag = false
     @State private var selectedView: ViewType? = .metrics
+    @State private var searchText = ""
+    @FocusState private var searchFieldFocused: Bool
     let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0"
     @StateObject private var licenseViewModel = LicenseViewModel()
 
@@ -76,64 +78,104 @@ struct ContentView: View {
 
     var body: some View {
         NavigationSplitView {
-            List(selection: $selectedView) {
-                Section {
-                    // App Header
-                    HStack(spacing: 6) {
-                        if let appIcon = NSImage(named: "AppIcon") {
-                            Image(nsImage: appIcon)
-                                .resizable()
-                                .aspectRatio(contentMode: .fit)
-                                .frame(width: 28, height: 28)
-                                .cornerRadius(8)
+            VStack(spacing: 0) {
+                HStack(spacing: 6) {
+                    Image(systemName: "magnifyingglass")
+                        .foregroundColor(.secondary)
+                        .font(.system(size: 12))
+                    TextField("Search settings...", text: $searchText)
+                        .textFieldStyle(.plain)
+                        .font(.system(size: 13))
+                        .focused($searchFieldFocused)
+                        .accessibilityIdentifier(AccessibilityID.Sidebar.searchField)
+                    if !searchText.isEmpty {
+                        Button {
+                            searchText = ""
+                        } label: {
+                            Image(systemName: "xmark.circle.fill")
+                                .foregroundColor(.secondary)
+                                .font(.system(size: 12))
                         }
-
-                        Text("VoiceInk")
-                            .font(.system(size: 14, weight: .semibold))
-
-                        if case .licensed = licenseViewModel.licenseState {
-                            Text("PRO")
-                                .font(.system(size: 9, weight: .heavy))
-                                .foregroundStyle(.white)
-                                .padding(.horizontal, 4)
-                                .padding(.vertical, 2)
-                                .background(Color.blue)
-                                .cornerRadius(4)
-                        }
-
-                        Spacer()
+                        .buttonStyle(.plain)
                     }
-                    .padding(.vertical, 4)
                 }
+                .padding(.horizontal, 8)
+                .padding(.vertical, 6)
+                .background(Color.primary.opacity(0.06))
+                .cornerRadius(8)
+                .padding(.horizontal, 16)
+                .padding(.top, 8)
+                .padding(.bottom, 4)
 
-                ForEach(visibleViewTypes) { viewType in
+                List(selection: $selectedView) {
                     Section {
-                        if viewType == .history {
-                            Button(action: {
-                                HistoryWindowController.shared.showHistoryWindow(
-                                    modelContainer: modelContext.container,
-                                    whisperState: whisperState
-                                )
-                            }) {
-                                SidebarItemView(viewType: viewType)
+                        // App Header
+                        HStack(spacing: 6) {
+                            if let appIcon = NSImage(named: "AppIcon") {
+                                Image(nsImage: appIcon)
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fit)
+                                    .frame(width: 28, height: 28)
+                                    .cornerRadius(8)
                             }
-                            .accessibilityIdentifier(AccessibilityID.Sidebar.buttonHistory)
-                            .buttonStyle(.plain)
-                            .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
-                            .listRowSeparator(.hidden)
-                        } else {
-                            NavigationLink(value: viewType) {
-                                SidebarItemView(viewType: viewType)
+
+                            Text("VoiceInk")
+                                .font(.system(size: 14, weight: .semibold))
+
+                            if case .licensed = licenseViewModel.licenseState {
+                                Text("PRO")
+                                    .font(.system(size: 9, weight: .heavy))
+                                    .foregroundStyle(.white)
+                                    .padding(.horizontal, 4)
+                                    .padding(.vertical, 2)
+                                    .background(Color.blue)
+                                    .cornerRadius(4)
                             }
-                            .accessibilityIdentifier(AccessibilityID.Sidebar.navLink(viewType.rawValue))
-                            .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
-                            .listRowSeparator(.hidden)
+
+                            Spacer()
                         }
+                        .padding(.vertical, 4)
+                    }
+
+                    if searchText.isEmpty {
+                    ForEach(visibleViewTypes) { viewType in
+                        Section {
+                            if viewType == .history {
+                                Button(action: {
+                                    HistoryWindowController.shared.showHistoryWindow(
+                                        modelContainer: modelContext.container,
+                                        whisperState: whisperState
+                                    )
+                                }) {
+                                    SidebarItemView(viewType: viewType)
+                                }
+                                .accessibilityIdentifier(AccessibilityID.Sidebar.buttonHistory)
+                                .buttonStyle(.plain)
+                                .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
+                                .listRowSeparator(.hidden)
+                            } else {
+                                NavigationLink(value: viewType) {
+                                    SidebarItemView(viewType: viewType)
+                                }
+                                .accessibilityIdentifier(AccessibilityID.Sidebar.navLink(viewType.rawValue))
+                                .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
+                                .listRowSeparator(.hidden)
+                            }
+                        }
+                    }
+                } else {
+                    Section {
+                        SettingsSearchResultsView(
+                            query: searchText,
+                            selectedView: $selectedView,
+                            searchText: $searchText
+                        )
                     }
                 }
             }
             .accessibilityIdentifier(AccessibilityID.Sidebar.list)
             .listStyle(.sidebar)
+            }
             .navigationTitle("VoiceInk")
             .navigationSplitViewColumnWidth(210)
         } detail: {
@@ -149,6 +191,11 @@ struct ContentView: View {
         .navigationSplitViewStyle(.balanced)
         .frame(minWidth: 950)
         .frame(minHeight: 730)
+        .onExitCommand {
+            if !searchText.isEmpty {
+                searchText = ""
+            }
+        }
         .onReceive(NotificationCenter.default.publisher(for: .navigateToDestination)) { notification in
             if let destination = notification.userInfo?["destination"] as? String {
                 switch destination {
