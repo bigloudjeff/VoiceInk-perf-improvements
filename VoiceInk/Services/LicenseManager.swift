@@ -12,7 +12,7 @@ final class LicenseManager {
     private let licenseKeyIdentifier = "voiceink.license.key"
     private let trialStartDateIdentifier = "voiceink.license.trialStartDate"
     private let activationIdIdentifier = "voiceink.license.activationId"
-    private let migrationCompletedKey = "LicenseKeychainMigrationCompleted"
+    private let migrationCompletedKey = UserDefaults.Keys.licenseKeychainMigrationCompleted
 
     private init() {
         migrateFromUserDefaultsIfNeeded()

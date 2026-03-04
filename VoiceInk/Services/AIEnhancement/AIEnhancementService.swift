@@ -135,7 +135,7 @@ class AIEnhancementService: ObservableObject {
                 self.enhancementMode = mode
                 self.backgroundEnhancementEnabled = UserDefaults.standard.bool(forKey: UserDefaults.Keys.backgroundEnhancementEnabled)
             }
-        } else if UserDefaults.standard.bool(forKey: "isAIEnhancementEnabled") {
+        } else if UserDefaults.standard.bool(forKey: UserDefaults.Keys.isAIEnhancementEnabled) {
             self.enhancementMode = .on
             self.backgroundEnhancementEnabled = UserDefaults.standard.bool(forKey: UserDefaults.Keys.backgroundEnhancementEnabled)
         } else {

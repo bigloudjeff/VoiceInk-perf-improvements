@@ -6,7 +6,7 @@ struct AudioCleanupSettingsView: View {
 
     // Audio cleanup settings
     @AppStorage(UserDefaults.Keys.isTranscriptionCleanupEnabled) private var isTranscriptionCleanupEnabled = false
-    @AppStorage("TranscriptionRetentionMinutes") private var transcriptionRetentionMinutes = 24 * 60
+    @AppStorage(UserDefaults.Keys.transcriptionRetentionMinutes) private var transcriptionRetentionMinutes = 24 * 60
     @AppStorage(UserDefaults.Keys.isAudioCleanupEnabled) private var isAudioCleanupEnabled = false
     @AppStorage(UserDefaults.Keys.audioRetentionPeriod) private var audioRetentionPeriod = 7
     @State private var isPerformingCleanup = false

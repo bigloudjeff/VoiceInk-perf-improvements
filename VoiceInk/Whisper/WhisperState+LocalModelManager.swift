@@ -94,7 +94,7 @@ extension WhisperState: LocalModelManagerDelegate {
   currentTranscriptionModel = nil
   UserDefaults.standard.removeObject(forKey: UserDefaults.Keys.currentTranscriptionModel)
   recordingState = .idle
-  UserDefaults.standard.removeObject(forKey: "CurrentModel")
+  UserDefaults.standard.removeObject(forKey: UserDefaults.Keys.currentTranscriptionModel)
  }
 
  func localModelManagerDidImportModel(name: String, asTranscriptionModel model: ImportedLocalModel) {

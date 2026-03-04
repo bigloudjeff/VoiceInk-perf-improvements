@@ -52,11 +52,11 @@ class SystemInfoService {
 
         POWER MODE:
         Power Mode Enabled: \(UserDefaults.standard.bool(forKey: UserDefaults.Keys.powerModeUIFlag))
-        Auto-Restore Enabled: \(UserDefaults.standard.bool(forKey: "powerModeAutoRestoreEnabled"))
+        Auto-Restore Enabled: \(UserDefaults.standard.bool(forKey: UserDefaults.Keys.powerModeAutoRestoreEnabled))
 
         DATA CLEANUP SETTINGS:
         Auto-Delete Transcriptions: \(UserDefaults.standard.bool(forKey: UserDefaults.Keys.isTranscriptionCleanupEnabled))
-        Transcription Retention: \(UserDefaults.standard.integer(forKey: "TranscriptionRetentionMinutes")) minutes
+        Transcription Retention: \(UserDefaults.standard.integer(forKey: UserDefaults.Keys.transcriptionRetentionMinutes)) minutes
         Auto-Delete Audio Files: \(UserDefaults.standard.bool(forKey: UserDefaults.Keys.isAudioCleanupEnabled))
         Audio Retention Period: \(UserDefaults.standard.integer(forKey: UserDefaults.Keys.audioRetentionPeriod)) days
 

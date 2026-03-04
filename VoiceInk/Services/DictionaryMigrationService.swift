@@ -6,9 +6,9 @@ class DictionaryMigrationService {
     static let shared = DictionaryMigrationService()
     private let logger = Logger(subsystem: "com.prakashjoshipax.voiceink", category: "DictionaryMigration")
 
-    private let migrationCompletedKey = "HasMigratedDictionaryToSwiftData_v2"
-    private let vocabularyKey = "CustomVocabularyItems"
-    private let wordReplacementsKey = "wordReplacements"
+    private let migrationCompletedKey = UserDefaults.Keys.dictionaryMigrationCompleted
+    private let vocabularyKey = UserDefaults.Keys.dictionaryItems
+    private let wordReplacementsKey = UserDefaults.Keys.wordReplacements
 
     private init() {}
 

@@ -85,6 +85,51 @@ extension UserDefaults {
         // Middle Click
         static let isMiddleClickToggleEnabled = "isMiddleClickToggleEnabled"
         static let middleClickActivationDelay = "middleClickActivationDelay"
+
+        // Onboarding & Announcements
+        static let hasCompletedOnboarding = "hasCompletedOnboarding"
+        static let enableAnnouncements = "enableAnnouncements"
+        static let autoUpdateCheck = "autoUpdateCheck"
+        static let dismissedAnnouncementIds = "dismissedAnnouncementIds"
+
+        // Sound & UI
+        static let isSoundFeedbackEnabled = "isSoundFeedbackEnabled"
+        static let typeOutDelay = "typeOutDelay"
+        static let warnNoTextField = "warnNoTextField"
+
+        // AI Enhancement (additional)
+        static let isAIEnhancementEnabled = "isAIEnhancementEnabled"
+        static let autoGeneratePhoneticHints = "autoGeneratePhoneticHints"
+
+        // Transcription Cleanup
+        static let transcriptionRetentionMinutes = "TranscriptionRetentionMinutes"
+        static let removeFillerWords = "RemoveFillerWords"
+        static let fillerWords = "FillerWords"
+
+        // Model Prewarm
+        static let prewarmModelOnWake = "PrewarmModelOnWake"
+
+        // Power Mode (additional)
+        static let powerModeAutoRestoreEnabled = "powerModeAutoRestoreEnabled"
+        static let powerModeConfigurations = "powerModeConfigurationsV2"
+        static let activeConfigurationId = "activeConfigurationId"
+        static let powerModeActiveSession = "powerModeActiveSession.v1"
+
+        // Custom Data
+        static let customCloudModels = "customCloudModels"
+        static let customEmojis = "userAddedEmojis"
+        static let customLanguagePrompts = "CustomLanguagePrompts"
+        static let predefinedPrompts = "PredefinedPrompts"
+
+        // Migration Keys
+        static let licenseKeychainMigrationCompleted = "LicenseKeychainMigrationCompleted"
+        static let apiKeyMigrationCompleted = "APIKeyMigrationToKeychainCompleted_v2"
+        static let dictionaryMigrationCompleted = "HasMigratedDictionaryToSwiftData_v2"
+        static let dictionaryItems = "CustomVocabularyItems"
+        static let wordReplacements = "wordReplacements"
+
+        // Log Exporter
+        static let logExporterSessions = "logExporter.sessionStartDates.v1"
     }
 
     // MARK: - Audio Input Mode

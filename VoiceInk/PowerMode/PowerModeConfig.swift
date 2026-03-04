@@ -137,8 +137,8 @@ class PowerModeManager: ObservableObject, PowerModeProviding {
     @Published var configurations: [PowerModeConfig] = []
     @Published var activeConfiguration: PowerModeConfig?
 
-    private let configKey = "powerModeConfigurationsV2"
-    private let activeConfigIdKey = "activeConfigurationId"
+    private let configKey = UserDefaults.Keys.powerModeConfigurations
+    private let activeConfigIdKey = UserDefaults.Keys.activeConfigurationId
 
     private init() {
         loadConfigurations()

@@ -6,7 +6,7 @@ struct ModelSettingsView: View {
     @AppStorage(UserDefaults.Keys.isTextFormattingEnabled) private var isTextFormattingEnabled = true
     @AppStorage(UserDefaults.Keys.isVADEnabled) private var isVADEnabled = true
     @AppStorage(UserDefaults.Keys.appendTrailingSpace) private var appendTrailingSpace = true
-    @AppStorage("PrewarmModelOnWake") private var prewarmModelOnWake = true
+    @AppStorage(UserDefaults.Keys.prewarmModelOnWake) private var prewarmModelOnWake = true
     @State private var customPrompt: String = ""
     @State private var isEditing: Bool = false
     

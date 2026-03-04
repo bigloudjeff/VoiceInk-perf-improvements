@@ -2,7 +2,7 @@ import SwiftUI
 
 struct PostProcessingSettingsView: View {
  @EnvironmentObject private var enhancementService: AIEnhancementService
- @AppStorage("autoGeneratePhoneticHints") private var autoGeneratePhoneticHints = false
+ @AppStorage(UserDefaults.Keys.autoGeneratePhoneticHints) private var autoGeneratePhoneticHints = false
 
  var body: some View {
   Form {

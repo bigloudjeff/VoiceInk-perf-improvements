@@ -101,7 +101,7 @@ class VocabularySuggestionService: NSObject {
    for candidate in candidates {
     // Skip if already in vocabulary
     if existingWords.contains(candidate.correctedPhrase.lowercased()) {
-     if UserDefaults.standard.bool(forKey: "autoGeneratePhoneticHints"),
+     if UserDefaults.standard.bool(forKey: UserDefaults.Keys.autoGeneratePhoneticHints),
         PhoneticHintMiningService.isPlausiblePhoneticHint(raw: candidate.rawPhrase, corrected: candidate.correctedPhrase),
         let vocabWord = vocabLookup[candidate.correctedPhrase.lowercased()] {
       let merged = PhoneticHintMiningService.mergeHints(

@@ -38,7 +38,7 @@ struct FillerWordChip: View {
 }
 
 struct FillerWordsSettingsView: View {
-    @AppStorage("RemoveFillerWords") private var removeFillerWords = true
+    @AppStorage(UserDefaults.Keys.removeFillerWords) private var removeFillerWords = true
     @StateObject private var fillerWordManager = FillerWordManager.shared
     @State private var newWord = ""
     @State private var showDuplicateAlert = false

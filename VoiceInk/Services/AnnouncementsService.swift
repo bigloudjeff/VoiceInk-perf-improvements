@@ -15,7 +15,7 @@ final class AnnouncementsService {
     // Fetch every 4 hours
     private let refreshInterval: TimeInterval = 4 * 60 * 60
 
-    private let dismissedKey = "dismissedAnnouncementIds"
+    private let dismissedKey = UserDefaults.Keys.dismissedAnnouncementIds
     private let maxDismissedToKeep = 2
     private var timer: Timer?
 

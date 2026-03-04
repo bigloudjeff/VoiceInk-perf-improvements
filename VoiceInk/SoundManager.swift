@@ -12,7 +12,7 @@ class SoundManager: ObservableObject, SoundPlaying {
     private var customStartSound: AVAudioPlayer?
     private var customStopSound: AVAudioPlayer?
 
-    @AppStorage("isSoundFeedbackEnabled") private var isSoundFeedbackEnabled = true
+    @AppStorage(UserDefaults.Keys.isSoundFeedbackEnabled) private var isSoundFeedbackEnabled = true
 
     private init() {
         Task(priority: .background) {

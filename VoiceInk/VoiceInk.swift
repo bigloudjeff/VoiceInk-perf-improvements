@@ -19,8 +19,8 @@ struct VoiceInkApp: App {
     @StateObject private var aiService = AIService()
     @StateObject private var enhancementService: AIEnhancementService
     @StateObject private var activeWindowService = ActiveWindowService.shared
-    @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
-    @AppStorage("enableAnnouncements") private var enableAnnouncements = true
+    @AppStorage(UserDefaults.Keys.hasCompletedOnboarding) private var hasCompletedOnboarding = false
+    @AppStorage(UserDefaults.Keys.enableAnnouncements) private var enableAnnouncements = true
     @State private var showMenuBarIcon = true
 
     // Audio cleanup manager for automatic deletion of old audio files
@@ -317,7 +317,7 @@ struct VoiceInkApp: App {
 }
 
 class UpdaterViewModel: ObservableObject {
-    @AppStorage("autoUpdateCheck") private var autoUpdateCheck = true
+    @AppStorage(UserDefaults.Keys.autoUpdateCheck) private var autoUpdateCheck = true
     
     private let updaterController: SPUStandardUpdaterController
     

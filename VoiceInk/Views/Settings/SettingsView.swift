@@ -14,15 +14,15 @@ struct SettingsView: View {
     @ObservedObject private var soundManager = SoundManager.shared
     @ObservedObject private var mediaController = MediaController.shared
     @ObservedObject private var playbackController = PlaybackController.shared
-    @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = true
-    @AppStorage("autoUpdateCheck") private var autoUpdateCheck = true
-    @AppStorage("enableAnnouncements") private var enableAnnouncements = true
+    @AppStorage(UserDefaults.Keys.hasCompletedOnboarding) private var hasCompletedOnboarding = true
+    @AppStorage(UserDefaults.Keys.autoUpdateCheck) private var autoUpdateCheck = true
+    @AppStorage(UserDefaults.Keys.enableAnnouncements) private var enableAnnouncements = true
     @AppStorage(UserDefaults.Keys.restoreClipboardAfterPaste) private var restoreClipboardAfterPaste = true
     @AppStorage(UserDefaults.Keys.clipboardRestoreDelay) private var clipboardRestoreDelay = 0.25
     @AppStorage(UserDefaults.Keys.useAppleScriptPaste) private var useAppleScriptPaste = false
     @AppStorage(UserDefaults.Keys.pasteMethod) private var pasteMethod = "default"
-    @AppStorage("typeOutDelay") private var typeOutDelay = 3.0
-    @AppStorage("warnNoTextField") private var warnNoTextField = true
+    @AppStorage(UserDefaults.Keys.typeOutDelay) private var typeOutDelay = 3.0
+    @AppStorage(UserDefaults.Keys.warnNoTextField) private var warnNoTextField = true
     @State private var showResetOnboardingAlert = false
     @State private var currentShortcut = KeyboardShortcuts.getShortcut(for: .toggleMiniRecorder)
     @State private var isCustomCancelEnabled = KeyboardShortcuts.getShortcut(for: .cancelRecorder) != nil
@@ -496,7 +496,7 @@ struct ExpandableSettingsRow<Content: View>: View {
 struct PowerModeSection: View {
     @ObservedObject private var powerModeManager = PowerModeManager.shared
     @AppStorage(UserDefaults.Keys.powerModeUIFlag) private var powerModeUIFlag = false
-    @AppStorage(PowerModeDefaults.autoRestoreKey) private var powerModeAutoRestoreEnabled = false
+    @AppStorage(UserDefaults.Keys.powerModeAutoRestoreEnabled) private var powerModeAutoRestoreEnabled = false
     @State private var showDisableAlert = false
     @State private var isExpanded = false
 
@@ -581,10 +581,4 @@ extension Text {
             .foregroundColor(.secondary)
             .fixedSize(horizontal: false, vertical: true)
     }
-}
-
-// MARK: - Power Mode Defaults
-
-enum PowerModeDefaults {
-    static let autoRestoreKey = "powerModeAutoRestoreEnabled"
 }

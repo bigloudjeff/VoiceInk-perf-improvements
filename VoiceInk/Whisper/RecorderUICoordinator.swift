@@ -114,7 +114,7 @@ class RecorderUICoordinator: NSObject {
 
   delegate.scheduleModelCleanup()
 
-  if UserDefaults.standard.bool(forKey: PowerModeDefaults.autoRestoreKey) {
+  if UserDefaults.standard.bool(forKey: UserDefaults.Keys.powerModeAutoRestoreEnabled) {
    await PowerModeSessionManager.shared.endSession()
    PowerModeManager.shared.setActiveConfiguration(nil)
   }

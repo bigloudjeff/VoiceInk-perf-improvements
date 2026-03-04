@@ -9,7 +9,7 @@ final class APIKeyManager: APIKeyProviding {
     private let keychain = KeychainService.shared
     private let userDefaults = UserDefaults.standard
 
-    private let migrationCompletedKey = "APIKeyMigrationToKeychainCompleted_v2"
+    private let migrationCompletedKey = UserDefaults.Keys.apiKeyMigrationCompleted
 
     /// Provider to Keychain identifier mapping (iOS compatible for iCloud sync).
     private static let providerToKeychainKey: [String: String] = [
@@ -154,7 +154,7 @@ final class APIKeyManager: APIKeyProviding {
 
     /// Migrates custom model API keys from UserDefaults.
     private func migrateCustomModelAPIKeys() {
-        guard let data = userDefaults.data(forKey: "customCloudModels") else {
+        guard let data = userDefaults.data(forKey: UserDefaults.Keys.customCloudModels) else {
             return
         }
 

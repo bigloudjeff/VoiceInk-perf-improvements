@@ -5,7 +5,7 @@ import Foundation
 class WhisperPrompt: ObservableObject {
     @Published var transcriptionPrompt: String = UserDefaults.standard.string(forKey: UserDefaults.Keys.transcriptionPrompt) ?? ""
     
-    private let customPromptsKey = "CustomLanguagePrompts"
+    private let customPromptsKey = UserDefaults.Keys.customLanguagePrompts
     
     // Store user-customized prompts
     private var customPrompts: [String: String] = [:]

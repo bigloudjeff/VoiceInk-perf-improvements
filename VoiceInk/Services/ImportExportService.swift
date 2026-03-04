@@ -72,18 +72,18 @@ class ImportExportService {
     static let shared = ImportExportService()
     private let logger = Logger(subsystem: "com.prakashjoshipax.voiceink", category: "ImportExportService")
     private let currentSettingsVersion: String
-    private let dictionaryItemsKey = "CustomVocabularyItems"
-    private let wordReplacementsKey = "wordReplacements"
+    private let dictionaryItemsKey = UserDefaults.Keys.dictionaryItems
+    private let wordReplacementsKey = UserDefaults.Keys.wordReplacements
 
 
     private let keyIsMenuBarOnly = UserDefaults.Keys.isMenuBarOnly
     private let keyRecorderType = UserDefaults.Keys.recorderType
     private let keyIsAudioCleanupEnabled = UserDefaults.Keys.isAudioCleanupEnabled
     private let keyIsTranscriptionCleanupEnabled = UserDefaults.Keys.isTranscriptionCleanupEnabled
-    private let keyTranscriptionRetentionMinutes = "TranscriptionRetentionMinutes"
+    private let keyTranscriptionRetentionMinutes = UserDefaults.Keys.transcriptionRetentionMinutes
     private let keyAudioRetentionPeriod = UserDefaults.Keys.audioRetentionPeriod
 
-    private let keyIsSoundFeedbackEnabled = "isSoundFeedbackEnabled"
+    private let keyIsSoundFeedbackEnabled = UserDefaults.Keys.isSoundFeedbackEnabled
     private let keyIsSystemMuteEnabled = UserDefaults.Keys.isSystemMuteEnabled
     private let keyIsTextFormattingEnabled = UserDefaults.Keys.isTextFormattingEnabled
 

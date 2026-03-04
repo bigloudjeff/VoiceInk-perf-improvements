@@ -59,7 +59,7 @@ struct PowerModeSession: Codable {
 class PowerModeSessionManager {
     static let shared = PowerModeSessionManager()
     private let logger = Logger(subsystem: "com.prakashjoshipax.voiceink", category: "PowerModeSessionManager")
-    private let sessionKey = "powerModeActiveSession.v1"
+    private let sessionKey = UserDefaults.Keys.powerModeActiveSession
     private var isApplyingPowerModeConfig = false
 
     private var whisperState: WhisperState?

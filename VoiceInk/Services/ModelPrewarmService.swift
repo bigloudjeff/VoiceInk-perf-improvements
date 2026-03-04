@@ -14,7 +14,7 @@ final class ModelPrewarmService: ObservableObject {
  modelsDirectory: contextProvider.modelsDirectory
  )
  private let prewarmAudioURL = Bundle.main.url(forResource: "esc", withExtension: "wav")
- private let prewarmEnabledKey = "PrewarmModelOnWake"
+ private let prewarmEnabledKey = UserDefaults.Keys.prewarmModelOnWake
 
  init(contextProvider: any WhisperContextProvider, modelContext: ModelContext) {
  self.contextProvider = contextProvider

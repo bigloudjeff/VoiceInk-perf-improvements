@@ -8,8 +8,8 @@ class FillerWordManager: ObservableObject, FillerWordProviding {
         "hmm", "hm", "mmm", "mm", "mh", "ha", "ehh"
     ]
 
-    private let fillerWordsKey = "FillerWords"
-    private let removeFillerWordsKey = "RemoveFillerWords"
+    private let fillerWordsKey = UserDefaults.Keys.fillerWords
+    private let removeFillerWordsKey = UserDefaults.Keys.removeFillerWords
 
     @Published var fillerWords: [String] {
         didSet {

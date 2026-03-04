@@ -6,7 +6,7 @@ class CustomModelManager: ObservableObject {
     
     private let logger = Logger(subsystem: "com.prakashjoshipax.voiceink", category: "CustomModelManager")
     private let userDefaults = UserDefaults.standard
-    private let customModelsKey = "customCloudModels"
+    private let customModelsKey = UserDefaults.Keys.customCloudModels
     
     @Published var customModels: [CustomCloudModel] = []
     

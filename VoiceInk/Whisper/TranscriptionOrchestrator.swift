@@ -243,7 +243,7 @@ class TranscriptionOrchestrator {
     """
    }
 
-   let warnEnabled = UserDefaults.standard.bool(forKey: "warnNoTextField")
+   let warnEnabled = UserDefaults.standard.bool(forKey: UserDefaults.Keys.warnNoTextField)
    let hasEditableField = EditableTextFieldChecker.isEditableTextFieldFocused()
 
    if warnEnabled && !hasEditableField {

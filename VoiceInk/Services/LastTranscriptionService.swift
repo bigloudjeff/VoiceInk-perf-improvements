@@ -119,7 +119,7 @@ class LastTranscriptionService: ObservableObject {
             }
         }()
 
-        let delay = UserDefaults.standard.double(forKey: "typeOutDelay")
+        let delay = UserDefaults.standard.double(forKey: UserDefaults.Keys.typeOutDelay)
         let delaySeconds = delay > 0 ? delay : 3.0
 
         Task { @MainActor in
