@@ -254,6 +254,10 @@ struct VoiceInkApp: App {
                     .background(WindowAccessor { window in
                         WindowManager.shared.configureWindow(window)
                     })
+                    .onOpenURL { url in
+                        guard url.scheme == "voiceink" else { return }
+                        VoiceInkURLHandler.handle(url, container: container)
+                    }
                     .onDisappear {
                         AnnouncementsService.shared.stop()
                         whisperState.unloadModel()
