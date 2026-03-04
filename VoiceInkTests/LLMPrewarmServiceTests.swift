@@ -2,6 +2,7 @@ import Testing
 import Foundation
 @testable import VoiceInk
 
+@Suite(.serialized)
 struct LLMPrewarmServiceTests {
 
  // MARK: - Provider Detection
