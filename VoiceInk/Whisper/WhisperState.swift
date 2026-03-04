@@ -30,7 +30,7 @@ class WhisperState: NSObject, ObservableObject, WhisperContextProvider {
  @Published var shouldCancelRecording = false
  var partialTranscript: String = ""
  var currentSession: TranscriptionSession?
- private var modelCleanupTimer: Task<Void, Never>?
+ private(set) var modelResourceManager: ModelResourceManager!
  var enhancementTask: Task<(String, TimeInterval, String?), Error>?
  var activeTranscriptionTask: Task<Void, Never>?
 
@@ -159,6 +159,12 @@ class WhisperState: NSObject, ObservableObject, WhisperContextProvider {
 
  // Initialize the transcription service registry
  self.serviceRegistry = TranscriptionServiceRegistry(contextProvider: self, modelContext: self.modelContext, modelsDirectory: self.modelsDirectory)
+
+ // Initialize the model resource manager
+ self.modelResourceManager = ModelResourceManager(
+  localModelManager: self.localModelManager,
+  serviceRegistry: self.serviceRegistry
+ )
 
  // Initialize the transcription orchestrator
  self.transcriptionOrchestrator = TranscriptionOrchestrator(
@@ -367,17 +373,11 @@ class WhisperState: NSObject, ObservableObject, WhisperContextProvider {
 
 
  func scheduleModelCleanup() {
- modelCleanupTimer?.cancel()
- modelCleanupTimer = Task {
- try? await Task.sleep(for: .seconds(60))
- guard !Task.isCancelled else { return }
- await cleanupModelResources()
- }
+  modelResourceManager.scheduleModelCleanup()
  }
 
  func cancelScheduledModelCleanup() {
- modelCleanupTimer?.cancel()
- modelCleanupTimer = nil
+  modelResourceManager.cancelScheduledModelCleanup()
  }
 }
 

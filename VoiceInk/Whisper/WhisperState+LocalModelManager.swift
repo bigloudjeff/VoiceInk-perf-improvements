@@ -54,8 +54,7 @@ extension WhisperState {
  }
 
  func cleanupModelResources() async {
-  await localModelManager.cleanupModelResources()
-  serviceRegistry.cleanup()
+  await modelResourceManager.cleanupModelResources()
  }
 
  func importLocalModel(from sourceURL: URL) async {
