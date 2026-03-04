@@ -50,4 +50,30 @@ extension NSApplication {
    return AppServiceLocator.shared.powerModeProvider?.activeConfiguration?.name ?? ""
   }
  }
+
+ @objc var scriptCurrentModel: String {
+  MainActor.assumeIsolated {
+   return AppServiceLocator.shared.whisperState?.currentTranscriptionModel?.name ?? "none"
+  }
+ }
+
+ @objc var scriptCurrentLanguage: String {
+  UserDefaults.standard.string(forKey: UserDefaults.Keys.selectedLanguage) ?? "auto"
+ }
+
+ @objc var scriptRecordingMode: String {
+  UserDefaults.standard.string(forKey: UserDefaults.Keys.recordingMode) ?? "hybrid"
+ }
+
+ @objc var scriptRecorderStyle: String {
+  UserDefaults.standard.string(forKey: UserDefaults.Keys.recorderType) ?? "mini"
+ }
+
+ @objc var scriptPasteMethod: String {
+  UserDefaults.standard.string(forKey: UserDefaults.Keys.pasteMethod) ?? "default"
+ }
+
+ @objc var scriptSoundEnabled: Bool {
+  UserDefaults.standard.bool(forKey: UserDefaults.Keys.isSoundFeedbackEnabled)
+ }
 }

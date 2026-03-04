@@ -33,6 +33,30 @@
     description="The name of the currently active Power Mode, or empty if none.">
     <cocoa key="scriptActivePowerMode"/>
    </property>
+   <property name="current model" code="VkCM" type="text" access="r"
+    description="The name of the current transcription model.">
+    <cocoa key="scriptCurrentModel"/>
+   </property>
+   <property name="current language" code="VkCL" type="text" access="r"
+    description="The current transcription language code.">
+    <cocoa key="scriptCurrentLanguage"/>
+   </property>
+   <property name="recording mode" code="VkRM" type="text" access="r"
+    description="The recording mode (hybrid, toggle, hands-free).">
+    <cocoa key="scriptRecordingMode"/>
+   </property>
+   <property name="recorder style" code="VkRY" type="text" access="r"
+    description="The recorder style (mini, notch).">
+    <cocoa key="scriptRecorderStyle"/>
+   </property>
+   <property name="paste method" code="VkPT" type="text" access="r"
+    description="The paste method (default, appleScript, typeOut).">
+    <cocoa key="scriptPasteMethod"/>
+   </property>
+   <property name="sound enabled" code="VkSE" type="boolean" access="r"
+    description="Whether sound feedback is enabled.">
+    <cocoa key="scriptSoundEnabled"/>
+   </property>
   </class>
 
   <!-- Commands -->
@@ -125,6 +149,115 @@
   <command name="list vocabulary" code="VoIkLsVc" description="List all vocabulary words.">
    <cocoa class="VoiceInk.ListVocabularyCommand"/>
    <result type="text" description="Comma-separated list of vocabulary words."/>
+  </command>
+
+  <command name="list prompts" code="VoIkLsPr" description="List all available enhancement prompts.">
+   <cocoa class="VoiceInk.ListPromptsCommand"/>
+   <result type="text" description="Comma-separated list of prompt names."/>
+  </command>
+
+  <command name="list power modes" code="VoIkLsPM" description="List all available Power Modes.">
+   <cocoa class="VoiceInk.ListPowerModesCommand"/>
+   <result type="text" description="Comma-separated list of Power Mode names."/>
+  </command>
+
+  <command name="list models" code="VoIkLsMd" description="List all available transcription models.">
+   <cocoa class="VoiceInk.ListModelsCommand"/>
+   <result type="text" description="List of available transcription models."/>
+  </command>
+
+  <command name="list languages" code="VoIkLsLg" description="List all supported transcription languages.">
+   <cocoa class="VoiceInk.ListLanguagesCommand"/>
+   <result type="text" description="List of language codes and names."/>
+  </command>
+
+  <command name="get status" code="VoIkGtSt" description="Get a summary of current VoiceInk state.">
+   <cocoa class="VoiceInk.GetStatusCommand"/>
+   <result type="text" description="Multi-line status summary."/>
+  </command>
+
+  <command name="set recording mode" code="VoIkSRMd" description="Set the recording mode.">
+   <cocoa class="VoiceInk.SetRecordingModeCommand"/>
+   <direct-parameter type="text" description="The mode: hybrid, toggle, or hands-free."/>
+   <result type="text" description="The new recording mode."/>
+  </command>
+
+  <command name="set recorder style" code="VoIkSRSt" description="Set the recorder style.">
+   <cocoa class="VoiceInk.SetRecorderStyleCommand"/>
+   <direct-parameter type="text" description="The style: mini or notch."/>
+   <result type="text" description="The new recorder style."/>
+  </command>
+
+  <command name="set paste method" code="VoIkSPMt" description="Set the paste method.">
+   <cocoa class="VoiceInk.SetPasteMethodCommand"/>
+   <direct-parameter type="text" description="The method: default, appleScript, or typeOut."/>
+   <result type="text" description="The new paste method."/>
+  </command>
+
+  <command name="toggle sound" code="VoIkTgSd" description="Toggle sound feedback.">
+   <cocoa class="VoiceInk.ToggleSoundCommand"/>
+   <result type="text" description="The new sound state."/>
+  </command>
+
+  <command name="toggle system mute" code="VoIkTgSM" description="Toggle system audio mute during recording.">
+   <cocoa class="VoiceInk.ToggleSystemMuteCommand"/>
+   <result type="text" description="The new system mute state."/>
+  </command>
+
+  <command name="toggle pause media" code="VoIkTgPM" description="Toggle auto-pause of playing media during recording.">
+   <cocoa class="VoiceInk.TogglePauseMediaCommand"/>
+   <result type="text" description="The new pause media state."/>
+  </command>
+
+  <command name="toggle text formatting" code="VoIkTgTF" description="Toggle text formatting post-processing.">
+   <cocoa class="VoiceInk.ToggleTextFormattingCommand"/>
+   <result type="text" description="The new text formatting state."/>
+  </command>
+
+  <command name="toggle filler removal" code="VoIkTgFR" description="Toggle filler word removal.">
+   <cocoa class="VoiceInk.ToggleFillerRemovalCommand"/>
+   <result type="text" description="The new filler removal state."/>
+  </command>
+
+  <command name="toggle vad" code="VoIkTgVD" description="Toggle Voice Activity Detection.">
+   <cocoa class="VoiceInk.ToggleVADCommand"/>
+   <result type="text" description="The new VAD state."/>
+  </command>
+
+  <command name="toggle menu bar only" code="VoIkTgMB" description="Toggle menu-bar-only mode.">
+   <cocoa class="VoiceInk.ToggleMenuBarOnlyCommand"/>
+   <result type="text" description="The new menu bar only state."/>
+  </command>
+
+  <command name="add word replacement" code="VoIkAdWR" description="Add a word replacement rule.">
+   <cocoa class="VoiceInk.AddWordReplacementCommand"/>
+   <direct-parameter type="text" description="The word or pattern to match."/>
+   <parameter name="with replacement" code="WRRp" type="text"
+    description="The replacement text.">
+    <cocoa key="replacementText"/>
+   </parameter>
+   <result type="text" description="Confirmation message."/>
+  </command>
+
+  <command name="remove word replacement" code="VoIkRmWR" description="Remove a word replacement rule.">
+   <cocoa class="VoiceInk.RemoveWordReplacementCommand"/>
+   <direct-parameter type="text" description="The original word or pattern to remove."/>
+   <result type="text" description="Confirmation message."/>
+  </command>
+
+  <command name="list word replacements" code="VoIkLsWR" description="List all word replacement rules.">
+   <cocoa class="VoiceInk.ListWordReplacementsCommand"/>
+   <result type="text" description="List of replacement rules."/>
+  </command>
+
+  <command name="copy last transcription" code="VoIkCpLT" description="Copy the most recent transcription to clipboard.">
+   <cocoa class="VoiceInk.CopyLastTranscriptionCommand"/>
+   <result type="text" description="Confirmation or error."/>
+  </command>
+
+  <command name="get transcription count" code="VoIkGtTC" description="Get the total number of transcriptions.">
+   <cocoa class="VoiceInk.GetTranscriptionCountCommand"/>
+   <result type="text" description="The transcription count."/>
   </command>
 
  </suite>
