@@ -114,7 +114,7 @@ struct VoiceInkApp: App {
         _activeWindowService = StateObject(wrappedValue: activeWindowService)
 
         
-        let prewarmService = ModelPrewarmService(contextProvider: whisperState, modelContext: container.mainContext)
+        let prewarmService = ModelPrewarmService(contextProvider: whisperState, modelContext: container.mainContext, aiService: aiService)
         _prewarmService = StateObject(wrappedValue: prewarmService)
 
         appDelegate.menuBarManager = menuBarManager

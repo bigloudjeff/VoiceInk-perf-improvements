@@ -407,6 +407,7 @@ class AIEnhancementService: ObservableObject {
             let result = try await makeRequestWithRetry(text: text, mode: enhancementPrompt)
             let endTime = Date()
             let duration = endTime.timeIntervalSince(startTime)
+            await LLMPrewarmService.shared.recordActivity()
             return (result, duration, promptName)
         } catch {
             throw error

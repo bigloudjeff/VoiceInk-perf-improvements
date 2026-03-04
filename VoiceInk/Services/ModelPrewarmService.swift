@@ -15,10 +15,12 @@ final class ModelPrewarmService: ObservableObject {
  )
  private let prewarmAudioURL = Bundle.main.url(forResource: "esc", withExtension: "wav")
  private let prewarmEnabledKey = UserDefaults.Keys.prewarmModelOnWake
+ private var aiService: AIService?
 
- init(contextProvider: any WhisperContextProvider, modelContext: ModelContext) {
+ init(contextProvider: any WhisperContextProvider, modelContext: ModelContext, aiService: AIService? = nil) {
  self.contextProvider = contextProvider
  self.modelContext = modelContext
+ self.aiService = aiService
  setupNotifications()
  schedulePrewarmOnAppLaunch()
  }
@@ -62,29 +64,31 @@ final class ModelPrewarmService: ObservableObject {
  // MARK: - Core Prewarming Logic
 
  private func performPrewarm() async {
- guard shouldPrewarm() else { return }
-
- guard let audioURL = prewarmAudioURL else {
- logger.error(" Prewarm audio file (esc.wav) not found")
- return
- }
-
- guard let currentModel = contextProvider.currentTranscriptionModel else {
- logger.notice(" No model selected, skipping prewarm")
- return
- }
-
+ // Transcription model prewarm
+ if shouldPrewarm() {
+ if let audioURL = prewarmAudioURL {
+ if let currentModel = contextProvider.currentTranscriptionModel {
  logger.notice(" Prewarming \(currentModel.displayName, privacy: .public)")
  let startTime = Date()
 
  do {
  let _ = try await serviceRegistry.transcribe(audioURL: audioURL, model: currentModel)
  let duration = Date().timeIntervalSince(startTime)
-
  logger.notice(" Prewarm completed in \(String(format: "%.2f", duration), privacy: .public)s")
-
  } catch {
  logger.error(" Prewarm failed: \(error.localizedDescription, privacy: .public)")
+ }
+ } else {
+ logger.notice(" No model selected, skipping prewarm")
+ }
+ } else {
+ logger.error(" Prewarm audio file (esc.wav) not found")
+ }
+ }
+
+ // Enhancement LLM prewarm
+ if let aiService = aiService {
+ await LLMPrewarmService.shared.prewarm(aiService: aiService)
  }
  }
 

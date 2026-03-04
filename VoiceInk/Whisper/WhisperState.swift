@@ -340,6 +340,11 @@ class WhisperState: NSObject, ObservableObject, WhisperContextProvider {
  }
  async let screen: Void = enhancementService.captureScreenContext()
  _ = await (clipboard, screen)
+
+ // Prewarm enhancement LLM in background
+ if let aiService = await enhancementService.getAIService() {
+ await LLMPrewarmService.shared.prewarm(aiService: aiService)
+ }
  }
  }
 

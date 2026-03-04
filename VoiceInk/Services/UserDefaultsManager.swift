@@ -108,6 +108,8 @@ extension UserDefaults {
 
         // Model Prewarm
         static let prewarmModelOnWake = "PrewarmModelOnWake"
+        static let prewarmEnhancementModel = "PrewarmEnhancementModel"
+        static let prewarmInactivityThreshold = "PrewarmInactivityThreshold"
 
         // Power Mode (additional)
         static let powerModeAutoRestoreEnabled = "powerModeAutoRestoreEnabled"

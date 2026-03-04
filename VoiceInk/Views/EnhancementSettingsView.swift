@@ -5,6 +5,8 @@ struct EnhancementSettingsView: View {
     @EnvironmentObject private var enhancementService: AIEnhancementService
     @State private var isEditingPrompt = false
     @State private var isShortcutsExpanded = false
+    @AppStorage(UserDefaults.Keys.prewarmEnhancementModel) private var prewarmEnhancementModel = false
+    @AppStorage(UserDefaults.Keys.prewarmInactivityThreshold) private var prewarmInactivityThreshold = 5
     @State private var selectedPromptForEdit: CustomPrompt?
     
     private var isPanelOpen: Bool {
@@ -54,6 +56,31 @@ struct EnhancementSettingsView: View {
                         .accessibilityIdentifier(AccessibilityID.Enhancement.toggleScreenContext)
                     }
                     .opacity(enhancementService.isEnhancementEnabled ? 1.0 : 0.8)
+
+                    Toggle(isOn: $prewarmEnhancementModel) {
+                        HStack(spacing: 4) {
+                            Text("Prewarm Enhancement Model")
+                            InfoTip("Pre-loads your AI model when recording starts. Useful for local model hosts (LM Studio, Ollama) that unload models after inactivity.")
+                        }
+                    }
+                    .toggleStyle(.switch)
+
+                    if prewarmEnhancementModel {
+                        HStack {
+                            Text("Inactivity Threshold")
+                            InfoTip("Only prewarm if no enhancement has run within this time. Avoids unnecessary requests when the model is already loaded.")
+                            Spacer()
+                            Picker("", selection: $prewarmInactivityThreshold) {
+                                Text("1 min").tag(1)
+                                Text("2 min").tag(2)
+                                Text("5 min").tag(5)
+                                Text("10 min").tag(10)
+                                Text("15 min").tag(15)
+                                Text("30 min").tag(30)
+                            }
+                            .frame(width: 100)
+                        }
+                    }
                 } header: {
                     Text("General")
                 }

@@ -56,6 +56,8 @@ enum AppDefaults {
 
             // Model
             "PrewarmModelOnWake": true,
+            "PrewarmEnhancementModel": false,
+            "PrewarmInactivityThreshold": 5,
         ])
     }
 }
