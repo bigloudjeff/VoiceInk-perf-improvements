@@ -97,9 +97,11 @@ class WhisperState: NSObject, ObservableObject, WhisperContextProvider {
  
  // Prompt detection service for trigger word handling
  private let promptDetectionService = PromptDetectionService()
- 
+
+ private(set) var transcriptionOrchestrator: TranscriptionOrchestrator!
+
  let modelContext: ModelContext
- 
+
  internal var serviceRegistry: TranscriptionServiceRegistry!
  
  private var modelUrl: URL? {
@@ -158,6 +160,18 @@ class WhisperState: NSObject, ObservableObject, WhisperContextProvider {
 
  // Initialize the transcription service registry
  self.serviceRegistry = TranscriptionServiceRegistry(contextProvider: self, modelContext: self.modelContext, modelsDirectory: self.modelsDirectory)
+
+ // Initialize the transcription orchestrator
+ self.transcriptionOrchestrator = TranscriptionOrchestrator(
+  modelContext: self.modelContext,
+  recorder: self.recorder,
+  serviceRegistry: self.serviceRegistry,
+  enhancementService: self.enhancementService,
+  promptDetectionService: self.promptDetectionService,
+  licenseViewModel: self.licenseViewModel,
+  logger: self.logger
+ )
+ self.transcriptionOrchestrator.delegate = self
 
  setupNotifications()
  localModelManager.createModelsDirectoryIfNeeded()
@@ -342,270 +356,13 @@ class WhisperState: NSObject, ObservableObject, WhisperContextProvider {
  }
  
  private func transcribeAudio(on transcription: Transcription) async {
- guard let urlString = transcription.audioFileURL, let url = URL(string: urlString) else {
- logger.error(" Invalid audio file URL in transcription object.")
- await MainActor.run {
- recordingState = .idle
- }
- transcription.text = "Transcription Failed: Invalid audio file URL"
- transcription.transcriptionStatus = TranscriptionStatus.failed.rawValue
- modelContext.safeSave(context: "transcription failure status", logger: logger)
- return
- }
-
- if shouldCancelRecording {
- await MainActor.run {
- recordingState = .idle
- }
- scheduleModelCleanup()
- return
- }
-
- await MainActor.run {
- recordingState = .transcribing
- }
-
- // Play stop sound when transcription starts with a small delay
- Task {
- let isSystemMuteEnabled = UserDefaults.standard.bool(forKey: UserDefaults.Keys.isSystemMuteEnabled)
- if isSystemMuteEnabled {
- try? await Task.sleep(for: .milliseconds(200))
- }
- await MainActor.run {
- SoundManager.shared.playStopSound()
- }
- }
-
- defer {
- if shouldCancelRecording {
- Task {
- await self.scheduleModelCleanup()
- }
- }
- }
-
- logger.notice(" Starting transcription...")
- 
- var finalPastedText: String?
- var promptDetectionResult: PromptDetectionService.PromptDetectionResult?
-
- do {
- guard let model = currentTranscriptionModel else {
- throw WhisperStateError.transcriptionFailed
- }
-
- let transcriptionStart = Date()
- var text: String
- if let session = currentSession {
- text = try await session.transcribe(audioURL: url)
- currentSession = nil
- } else {
- text = try await serviceRegistry.transcribe(audioURL: url, model: model)
- }
- logger.notice(" Transcript: \(text, privacy: .private)")
- text = TranscriptionOutputFilter.filter(text)
- logger.notice(" Output filter result: \(text, privacy: .private)")
- let transcriptionDuration = Date().timeIntervalSince(transcriptionStart)
-
- let powerModeManager = PowerModeManager.shared
- let activePowerModeConfig = powerModeManager.currentActiveConfiguration
- let powerModeName = (activePowerModeConfig?.isEnabled == true) ? activePowerModeConfig?.name : nil
- let powerModeEmoji = (activePowerModeConfig?.isEnabled == true) ? activePowerModeConfig?.emoji : nil
-
- if await checkCancellationAndCleanup() { return }
-
- text = text.trimmingCharacters(in: .whitespacesAndNewlines)
-
- if UserDefaults.standard.bool(forKey: UserDefaults.Keys.isTextFormattingEnabled) {
- text = WhisperTextFormatter.format(text)
- logger.notice(" Formatted transcript: \(text, privacy: .private)")
- }
-
- text = WordReplacementService.shared.applyReplacements(to: text, using: modelContext)
- logger.notice(" WordReplacement: \(text, privacy: .private)")
-
- let audioAsset = AVURLAsset(url: url)
- let actualDuration = (try? CMTimeGetSeconds(await audioAsset.load(.duration))) ?? 0.0
- 
- transcription.text = text
- transcription.duration = actualDuration
- transcription.transcriptionModelName = model.displayName
- transcription.transcriptionDuration = transcriptionDuration
- transcription.powerModeName = powerModeName
- transcription.powerModeEmoji = powerModeEmoji
- finalPastedText = text
- 
- if let enhancementService = enhancementService, enhancementService.isConfigured {
- let detectionResult = await promptDetectionService.analyzeText(text, with: enhancementService)
- promptDetectionResult = detectionResult
- await promptDetectionService.applyDetectionResult(detectionResult, to: enhancementService)
- }
-
- if let enhancementService = enhancementService,
- enhancementService.isConfigured {
- let textForAI = promptDetectionResult?.processedText ?? text
- let formattedUserMessage = "\n<TRANSCRIPT>\n\(textForAI)\n</TRANSCRIPT>"
-
- // Determine effective mode: prompt detection forces synchronous enhancement
- let effectiveMode: EnhancementMode = if promptDetectionResult?.shouldEnableAI == true {
- .on
- } else {
- enhancementService.effectiveEnhancementMode
- }
-
- switch effectiveMode {
- case .on:
- if await checkCancellationAndCleanup() { return }
-
- await MainActor.run { self.recordingState = .enhancing }
-
- do {
- let task = Task {
- try await enhancementService.enhance(textForAI)
- }
- self.enhancementTask = task
- let (enhancedText, enhancementDuration, promptName) = try await task.value
- self.enhancementTask = nil
- logger.notice(" AI enhancement: \(enhancedText, privacy: .private)")
- transcription.enhancedText = enhancedText
- transcription.aiEnhancementModelName = enhancementService.getAIService()?.currentModel
- transcription.promptName = promptName
- transcription.enhancementDuration = enhancementDuration
- transcription.aiRequestSystemMessage = enhancementService.lastSystemMessageSent
- transcription.aiRequestUserMessage = enhancementService.lastUserMessageSent
- finalPastedText = enhancedText
- } catch is CancellationError {
- self.enhancementTask = nil
- transcription.enhancedText = nil
- if await checkCancellationAndCleanup() { return }
- } catch {
- self.enhancementTask = nil
- transcription.enhancedText = "Enhancement failed: \(error)"
-
- if await checkCancellationAndCleanup() { return }
- }
-
- case .background:
- // Snapshot system message before contexts are cleared by dismissMiniRecorder
- let systemMessage = await enhancementService.buildSystemMessageSnapshot()
- let job = BackgroundEnhancementJob(
- transcriptionId: transcription.id,
- text: textForAI,
- systemMessage: systemMessage,
- userMessage: formattedUserMessage,
- promptName: enhancementService.activePrompt?.title,
- aiModelName: enhancementService.getAIService()?.currentModel
- )
- EnhancementQueueService.shared.enqueue(job)
- // finalPastedText stays as raw text; pipeline proceeds immediately
-
- case .off:
- break
- }
- }
-
- transcription.transcriptionStatus = TranscriptionStatus.completed.rawValue
-
- } catch is CancellationError {
- logger.notice("Transcription cancelled, cleaning up silently")
- modelContext.delete(transcription)
- modelContext.safeSave(context: "cancellation cleanup", logger: logger)
- recorder.restoreAudio()
- await self.dismissMiniRecorder()
- scheduleModelCleanup()
- return
- } catch {
- let errorDescription = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
- let recoverySuggestion = (error as? LocalizedError)?.recoverySuggestion ?? ""
- let fullErrorText = recoverySuggestion.isEmpty ? errorDescription : "\(errorDescription) \(recoverySuggestion)"
-
- transcription.text = "Transcription Failed: \(fullErrorText)"
- transcription.transcriptionStatus = TranscriptionStatus.failed.rawValue
- }
-
- modelContext.safeSave(context: "completed transcription", logger: logger)
-
- NotificationCenter.default.post(name: .transcriptionCompleted, object: transcription)
-
- if await checkCancellationAndCleanup() { return }
-
- if var textToPaste = finalPastedText, transcription.transcriptionStatus == TranscriptionStatus.completed.rawValue,
- !textToPaste.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
- if case .trialExpired = licenseViewModel.licenseState {
- textToPaste = """
- Your trial has expired. Upgrade to VoiceInk Pro at tryvoiceink.com/buy
- \n\(textToPaste)
- """
- }
-
- let warnEnabled = UserDefaults.standard.bool(forKey: "warnNoTextField")
- let hasEditableField = EditableTextFieldChecker.isEditableTextFieldFocused()
-
- if warnEnabled && !hasEditableField {
- // Copy to clipboard but skip paste
- let pasteboard = NSPasteboard.general
- pasteboard.clearContents()
- pasteboard.setString(textToPaste + (CursorPaster.appendTrailingSpace ? " " : ""), forType: .string)
- NotificationManager.shared.showNotification(
-  title: "No text field detected -- use Paste Last Transcription to paste",
-  type: .warning,
-  duration: 3.0
- )
- recorder.restoreAudio()
- } else {
- DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
- CursorPaster.pasteAtCursor(textToPaste + (CursorPaster.appendTrailingSpace ? " " : ""))
-
- let powerMode = PowerModeManager.shared
- if let activeConfig = powerMode.currentActiveConfiguration, activeConfig.isAutoSendEnabled {
-  DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-  CursorPaster.pressEnter()
-  }
- }
- }
-
- let audioRestoreDelay: TimeInterval
- if let activeConfig = PowerModeManager.shared.currentActiveConfiguration, activeConfig.isAutoSendEnabled {
- audioRestoreDelay = 0.35
- } else {
- audioRestoreDelay = 0.15
- }
- DispatchQueue.main.asyncAfter(deadline: .now() + audioRestoreDelay) { [weak self] in
- self?.recorder.restoreAudio()
- }
- }
- } else {
- // No text to paste -- restore audio immediately
- recorder.restoreAudio()
- }
-
- if let result = promptDetectionResult,
- let enhancementService = enhancementService,
- result.shouldEnableAI {
- await promptDetectionService.restoreOriginalSettings(result, to: enhancementService)
- }
-
- await self.dismissMiniRecorder()
-
- shouldCancelRecording = false
+  await transcriptionOrchestrator.transcribeAudio(on: transcription)
  }
 
  func getEnhancementService() -> AIEnhancementService? {
- return enhancementService
- }
- 
- private func checkCancellationAndCleanup() async -> Bool {
- if shouldCancelRecording {
- recorder.restoreAudio()
- scheduleModelCleanup()
- return true
- }
- return false
+  return enhancementService
  }
 
- private func cleanupAndDismiss() async {
- await dismissMiniRecorder()
- }
 
  func scheduleModelCleanup() {
  modelCleanupTimer?.cancel()
@@ -621,3 +378,7 @@ class WhisperState: NSObject, ObservableObject, WhisperContextProvider {
  modelCleanupTimer = nil
  }
 }
+
+// MARK: - TranscriptionOrchestratorDelegate
+
+extension WhisperState: TranscriptionOrchestratorDelegate {}
