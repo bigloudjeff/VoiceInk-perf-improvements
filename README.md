@@ -6,6 +6,106 @@
 
 ---
 
+## Fork Changes
+
+All changes in this fork relative to the upstream repository, organized by area. See the [original PR #562](https://github.com/Beingpax/VoiceInk/pull/562) for the initial batch of work.
+
+### Performance
+
+- **Parallel context capture** -- clipboard and screen OCR run concurrently via `async let`, saving 200-500ms per transcription
+- **3-second OCR timeout** -- prevents screen capture from stalling the entire pipeline on complex windows
+- **Model pre-loading on selection** -- transcription model loads in the background immediately when selected, eliminating 2-5s first-recording latency
+- **30-second model cleanup grace period** -- back-to-back transcriptions reuse the loaded model instead of repeatedly loading/unloading
+- **Cached word replacement regex** -- compiled patterns are cached instead of recompiled per replacement per transcription
+- **Pre-compiled AppleScript** -- paste script compiled once at class init, not on every paste
+- **Cached DateFormatter/ISO8601DateFormatter** -- formatter instances reused instead of recreated
+- **SwiftData query optimization** -- database-level filtering with `#Predicate` and `propertiesToFetch` to reduce memory footprint
+
+### Background Enhancement Queue
+
+- **Zero-wait paste** -- raw transcription pastes immediately, AI enhancement processes asynchronously in the background
+- **Thread-safe queue** -- `OSAllocatedUnfairLock` for lock-free job management on a detached task
+- **System message snapshot** -- captures AI prompt at enqueue time before screen context clears
+
+### LLM Enhancement Model Prewarming
+
+- **Prewarm on recording start** -- sends a minimal `max_tokens: 1` request to force local LLM model loading (Ollama, custom localhost providers) while recording is in progress
+- **Prewarm on app launch and wake** -- via the existing `ModelPrewarmService` infrastructure
+- **Configurable inactivity threshold** -- only prewarms if no enhancement has run within a user-configurable window (1-30 minutes, default 5)
+- **Activity tracking** -- records each successful enhancement to avoid redundant prewarm requests during active use
+- **Provider detection** -- automatically identifies local providers (Ollama, custom with localhost/127.0.0.1 URLs) and skips cloud providers
+
+### Hotkey System Rewrite
+
+- **Three recording modes** -- hybrid (brief press = toggle, long press = push-to-talk), push-to-talk, and toggle
+- **Dual hotkey slots** -- two independent hotkey configurations for different workflows
+- **Companion modifier support** -- any hotkey can combine with a second modifier (Shift, Control, Option, Command, Fn)
+- **Seven modifier key options** -- Right/Left Option, Right/Left Control, Fn, Right Command, Right Shift, plus custom via KeyboardShortcuts
+- **Middle-click recording toggle** -- mouse button 2 support with configurable activation delay
+- **Fn key debounce (40ms)** -- filters spurious macOS Fn flag events
+- **State machine isolation** -- each hotkey slot tracks its own key state independently
+
+### Paste Strategy
+
+- **Editable text field detection** -- uses Accessibility APIs to check `AXRole` before pasting; warns when no text field is focused
+- **Type-out mode** -- character-by-character typing via `CGEvent` for fields that block clipboard paste (password fields, some web forms)
+- **Input source management** -- temporarily switches to QWERTY for Cmd+V on non-QWERTY layouts, then restores
+
+### Intelligent Vocabulary System
+
+- **Vocabulary extraction pipeline** -- `VocabularyDiffEngine` uses LCS alignment to compare raw transcription against AI-enhanced text and identify correction patterns
+- **Automatic suggestions** -- `VocabularySuggestionService` tracks correction frequency and surfaces suggestions when patterns recur
+- **Phonetic hints** -- `phoneticHints` field on vocabulary words (e.g., "VoiceInk (often heard as: voicing, voice ink)") improves both local and cloud model corrections
+- **Auto-generated hints** -- `PhoneticHintMiningService` mines transcription history with multi-layered plausibility filtering (morphological variants, abbreviations, bigram Dice similarity)
+- **Transcription vs enhancement vocab split** -- bare word list for biasing speech recognition, full annotations with hints for AI enhancement
+- **Common word filtering** -- frequency lists for 5 languages (en, de, es, fr, pt) to filter common words from suggestions
+
+### Local AI Provider (MLX-LM)
+
+- **MLX-LM integration** -- local inference on Apple Silicon via `LocalMLXService` and `LocalMLXClient`
+- **Auto-start server** -- VoiceInk launches the mlx-lm server process when MLX-LM is selected, including model loading and health polling
+- **OpenAI-compatible API** -- HTTP client at localhost:8090, no API key needed
+
+### Automation Interfaces
+
+- **AppleScript** -- full scripting dictionary (`VoiceInk.sdef`) with read-only properties (recording state, current model, language, enhancement mode, etc.) and commands for recording, enhancement, settings, vocabulary, word replacements, queries, and navigation
+- **Siri Shortcuts / App Intents** -- AppIntent structs for vocabulary, word replacements, settings, and query commands; registered in `AppShortcuts.swift` with Siri phrases
+- **URL scheme** -- `voiceink://` routes for vocabulary, replacements, recording, enhancement, settings, navigation, and status
+- **AppleScript window navigation** -- `show window "ViewName"` and `show history` commands
+
+### History and Export
+
+- **Pinned transcriptions** -- pin important entries to the top of history
+- **Multi-select** -- select multiple entries for bulk operations
+- **Always-visible toolbar** -- history toolbar stays accessible during scrolling
+- **Single-entry export** -- export individual transcriptions
+- **Export-as-files** -- YAML metadata, markdown, and audio file export option
+
+### Architecture and Code Quality
+
+- **WhisperState decomposition** -- extracted `TranscriptionOrchestrator`, `RecorderUICoordinator`, `ModelResourceManager`, `LocalModelManager`, `ParakeetModelManager` from the 1,480+ line god object
+- **Protocol-based dependency injection** -- `WhisperContextProvider`, `PowerModeProviding`, `NotificationPresenting`, `FillerWordProviding`, and 5 service protocols via `AppServiceLocator`
+- **Centralized UserDefaults keys** -- all keys in `UserDefaultsManager.swift` across ~30 files
+- **Centralized error handling** -- `safeSave`/`safeFetch`/`trySave` pattern with consistent logging
+- **Resolved all critical/high findings** -- from automated ideation audit (10 critical, 38 high)
+- **20 medium-priority findings addressed** -- across 4 fix batches
+- **Accessibility identifiers** -- centralized in `AccessibilityID.swift` for XCUITest automation
+
+### Testing
+
+- **100+ unit tests** added across:
+  - `LLMPrewarmServiceTests` (18) -- provider detection, URL construction, inactivity threshold, guard behavior
+  - `CustomVocabularyServiceTests` (21) -- add/remove/list with duplicate detection, case-insensitive matching, phonetic hints
+  - `VoiceInkURLHandlerTests` (28+) -- URL scheme parsing for all route types with encoding validation
+  - `ScriptCommandSettingsTests` (18) -- input validation for recording modes, recorder styles, paste methods, enhancement modes
+  - `PowerModeManagerTests`, `PowerModeConfigCodableTests`, `PowerModeValidatorTests`, `PowerModeURLMatchingTests` -- Power Mode business logic
+  - `VocabularyDiffEngineTests`, `PhoneticHintMiningServiceTests` -- vocabulary extraction and hint plausibility
+  - `FillerWordRemovalTests`, `FillerWordManagerTests` -- filler word processing
+  - `WhisperTextFormatterTests`, `TranscriptionOutputFilterTests` -- output formatting
+  - `WordReplacementServiceTests`, `ReasoningConfigTests` -- additional business logic
+
+---
+
 <div align="center">
   <img src="VoiceInk/Assets.xcassets/AppIcon.appiconset/256-mac.png" width="180" height="180" />
   <h1>VoiceInk</h1>
