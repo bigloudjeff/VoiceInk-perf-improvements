@@ -39,11 +39,11 @@ class WhisperState: NSObject, ObservableObject, WhisperContextProvider {
  didSet {
  if isMiniRecorderVisible {
  if oldValue == "notch" {
- notchWindowManager?.hide()
- notchWindowManager = nil
+ recorderUICoordinator.notchWindowManager?.hide()
+ recorderUICoordinator.notchWindowManager = nil
  } else {
- miniWindowManager?.hide()
- miniWindowManager = nil
+ recorderUICoordinator.miniWindowManager?.hide()
+ recorderUICoordinator.miniWindowManager = nil
  }
  Task { @MainActor in
  try? await Task.sleep(for: .milliseconds(50))
@@ -99,6 +99,7 @@ class WhisperState: NSObject, ObservableObject, WhisperContextProvider {
  private let promptDetectionService = PromptDetectionService()
 
  private(set) var transcriptionOrchestrator: TranscriptionOrchestrator!
+ private(set) var recorderUICoordinator = RecorderUICoordinator()
 
  let modelContext: ModelContext
 
@@ -128,8 +129,6 @@ class WhisperState: NSObject, ObservableObject, WhisperContextProvider {
  let enhancementService: AIEnhancementService?
  var licenseViewModel: LicenseViewModel
  let logger = Logger(subsystem: "com.prakashjoshipax.voiceink", category: "WhisperState")
- var notchWindowManager: NotchWindowManager?
- var miniWindowManager: MiniWindowManager?
  
  // For model progress tracking
  @Published var downloadProgress: [String: Double] = [:]
@@ -172,6 +171,9 @@ class WhisperState: NSObject, ObservableObject, WhisperContextProvider {
   logger: self.logger
  )
  self.transcriptionOrchestrator.delegate = self
+
+ // Wire up the recorder UI coordinator
+ self.recorderUICoordinator.delegate = self
 
  setupNotifications()
  localModelManager.createModelsDirectoryIfNeeded()

@@ -2,180 +2,71 @@ import Foundation
 import SwiftUI
 import os
 
-// MARK: - UI Management Extension
+// MARK: - UI Management Extension (thin forwarders to RecorderUICoordinator)
 extension WhisperState {
- 
- // MARK: - Recorder Panel Management
- 
+
+ // MARK: - Recorder Panel Forwarding
+
  func showRecorderPanel() {
- let screen = selectedScreen
- logger.notice(" Showing \(self.recorderType, privacy: .public) recorder")
- if recorderType == "notch" {
- if notchWindowManager == nil {
- notchWindowManager = NotchWindowManager(whisperState: self, recorder: recorder)
+  recorderUICoordinator.showRecorderPanel()
  }
- notchWindowManager?.show(on: screen)
- } else {
- if miniWindowManager == nil {
- miniWindowManager = MiniWindowManager(whisperState: self, recorder: recorder)
- }
- miniWindowManager?.show(on: screen)
- }
- }
- 
+
  func hideRecorderPanel() {
- if recorderType == "notch" {
- notchWindowManager?.hide()
- } else {
- miniWindowManager?.hide()
+  recorderUICoordinator.hideRecorderPanel()
  }
- }
- 
- // MARK: - Mini Recorder Management
- 
+
  func toggleMiniRecorder(powerModeId: UUID? = nil) async {
- logger.notice("toggleMiniRecorder called – visible=\(self.isMiniRecorderVisible, privacy: .public), state=\(String(describing: self.recordingState), privacy: .public)")
- if isMiniRecorderVisible {
- if recordingState == .recording {
- logger.notice("toggleMiniRecorder: stopping recording (was recording)")
- await toggleRecord(powerModeId: powerModeId)
- } else {
- logger.notice("toggleMiniRecorder: cancelling (was not recording)")
- await cancelRecording()
+  await recorderUICoordinator.toggleMiniRecorder(powerModeId: powerModeId)
  }
- } else {
- // Show the panel immediately -- bypass the didSet's DispatchQueue.main.async
- // to eliminate one run loop cycle of latency
- isMiniRecorderVisible = true
- showRecorderPanel()
 
- SoundManager.shared.playStartSound()
-
- await toggleRecord(powerModeId: powerModeId)
- }
- }
- 
  func dismissMiniRecorder() async {
- logger.notice("dismissMiniRecorder called – state=\(String(describing: self.recordingState), privacy: .public)")
- if recordingState == .busy {
- logger.notice("dismissMiniRecorder: early return, state is busy")
- return
- }
-
- let wasRecording = recordingState == .recording
-
- await MainActor.run {
- self.recordingState = .busy
- }
-
- // Cancel and release any active streaming session to prevent resource leaks.
- currentSession?.cancel()
- currentSession = nil
-
- if wasRecording {
- await recorder.stopRecording()
- }
- 
- hideRecorderPanel()
- 
- // Clear captured context when the recorder is dismissed
- if let enhancementService = enhancementService {
- await MainActor.run {
- enhancementService.clearCapturedContexts()
- }
- }
- 
- await MainActor.run {
- isMiniRecorderVisible = false
- }
-
- scheduleModelCleanup()
-
- if UserDefaults.standard.bool(forKey: PowerModeDefaults.autoRestoreKey) {
- await PowerModeSessionManager.shared.endSession()
- await MainActor.run {
- PowerModeManager.shared.setActiveConfiguration(nil)
- }
- }
- 
- await MainActor.run {
- recordingState = .idle
- }
- logger.notice("dismissMiniRecorder completed")
+  await recorderUICoordinator.dismissMiniRecorder()
  }
 
  func resetOnLaunch() async {
- logger.notice(" Resetting recording state on launch")
- await recorder.stopRecording()
- hideRecorderPanel()
- await MainActor.run {
- isMiniRecorderVisible = false
- shouldCancelRecording = false
- miniRecorderError = nil
- recordingState = .idle
+  await recorderUICoordinator.resetOnLaunch()
  }
- await cleanupModelResources()
- }
- 
+
  func cancelRecording() async {
- logger.notice("cancelRecording called")
- SoundManager.shared.playEscSound()
- shouldCancelRecording = true
- activeTranscriptionTask?.cancel()
- activeTranscriptionTask = nil
- enhancementTask?.cancel()
- enhancementTask = nil
- await dismissMiniRecorder()
+  await recorderUICoordinator.cancelRecording()
  }
- 
- // MARK: - Notification Handling
- 
- func setupNotifications() {
- NotificationCenter.default.addObserver(self, selector: #selector(handleToggleMiniRecorder), name: .toggleMiniRecorder, object: nil)
- NotificationCenter.default.addObserver(self, selector: #selector(handleDismissMiniRecorder), name: .dismissMiniRecorder, object: nil)
- NotificationCenter.default.addObserver(self, selector: #selector(handleLicenseStatusChanged), name: .licenseStatusChanged, object: nil)
- NotificationCenter.default.addObserver(self, selector: #selector(handlePromptChange), name: .promptDidChange, object: nil)
- }
- 
+
  @objc public func handleToggleMiniRecorder() {
- logger.notice("handleToggleMiniRecorder: .toggleMiniRecorder notification received")
- guard recordingState == .idle || recordingState == .recording else {
- logger.notice("handleToggleMiniRecorder: ignored, state=\(String(describing: self.recordingState), privacy: .public)")
- return
- }
- Task {
- await toggleMiniRecorder()
- }
+  recorderUICoordinator.handleToggleMiniRecorder()
  }
 
  @objc public func handleDismissMiniRecorder() {
- logger.notice("handleDismissMiniRecorder: .dismissMiniRecorder notification received")
- Task {
- await dismissMiniRecorder()
+  recorderUICoordinator.handleDismissMiniRecorder()
  }
+
+ // MARK: - Notification Setup
+
+ func setupNotifications() {
+  recorderUICoordinator.setupRecorderNotifications()
+  NotificationCenter.default.addObserver(self, selector: #selector(handleLicenseStatusChanged), name: .licenseStatusChanged, object: nil)
+  NotificationCenter.default.addObserver(self, selector: #selector(handlePromptChange), name: .promptDidChange, object: nil)
  }
- 
+
  @objc func handleLicenseStatusChanged() {
- self.licenseViewModel = LicenseViewModel()
+  self.licenseViewModel = LicenseViewModel()
  }
- 
+
  @objc func handlePromptChange() {
- // Update the whisper context with the new prompt
- Task {
- await updateContextPrompt()
+  Task {
+   await updateContextPrompt()
+  }
  }
- }
- 
+
  private func updateContextPrompt() async {
- // Always reload the prompt from UserDefaults to ensure we have the latest
- let basePrompt = UserDefaults.standard.string(forKey: UserDefaults.Keys.transcriptionPrompt) ?? whisperPrompt.transcriptionPrompt
-
- // Append bare vocabulary words to bias transcription toward recognizing them
- let vocabularyString = CustomVocabularyService.shared.getTranscriptionVocabulary(from: modelContext)
- let fullPrompt = vocabularyString.isEmpty ? basePrompt : basePrompt + " " + vocabularyString
-
- if let context = whisperContext {
- await context.setPrompt(fullPrompt)
+  let basePrompt = UserDefaults.standard.string(forKey: UserDefaults.Keys.transcriptionPrompt) ?? whisperPrompt.transcriptionPrompt
+  let vocabularyString = CustomVocabularyService.shared.getTranscriptionVocabulary(from: modelContext)
+  let fullPrompt = vocabularyString.isEmpty ? basePrompt : basePrompt + " " + vocabularyString
+  if let context = whisperContext {
+   await context.setPrompt(fullPrompt)
+  }
  }
- }
-} 
+}
+
+// MARK: - RecorderUICoordinatorDelegate
+
+extension WhisperState: RecorderUICoordinatorDelegate {}
