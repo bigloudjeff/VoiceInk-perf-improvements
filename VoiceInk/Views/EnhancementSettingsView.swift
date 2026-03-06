@@ -8,6 +8,7 @@ struct EnhancementSettingsView: View {
     @AppStorage(UserDefaults.Keys.prewarmEnhancementModel) private var prewarmEnhancementModel = false
     @AppStorage(UserDefaults.Keys.prewarmInactivityThreshold) private var prewarmInactivityThreshold = 5
     @State private var selectedPromptForEdit: CustomPrompt?
+    @State private var isSystemInstructionsExpanded = false
     
     private var isPanelOpen: Bool {
         isEditingPrompt || selectedPromptForEdit != nil
@@ -125,6 +126,27 @@ struct EnhancementSettingsView: View {
                 }
                 .opacity(enhancementService.isEnhancementEnabled ? 1.0 : 0.8)
                 
+                Section {
+                    DisclosureGroup(isExpanded: $isSystemInstructionsExpanded) {
+                        SystemInstructionsEditor()
+                            .padding(.vertical, 8)
+                    } label: {
+                        HStack {
+                            Text("System Instructions")
+                                .font(.headline)
+                                .foregroundColor(.primary)
+                            Spacer()
+                        }
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            withAnimation {
+                                isSystemInstructionsExpanded.toggle()
+                            }
+                        }
+                    }
+                }
+                .opacity(enhancementService.isEnhancementEnabled ? 1.0 : 0.8)
+
                 Section {
                     DisclosureGroup(isExpanded: $isShortcutsExpanded) {
                         EnhancementShortcutsView()
@@ -275,6 +297,67 @@ private struct ReorderablePromptGrid: View {
             }
         }
     }
+}
+
+// MARK: - System Instructions Editor
+private struct SystemInstructionsEditor: View {
+ @State private var instructionsText: String = AIPrompts.customPromptTemplate
+ @State private var hasChanges = false
+ @State private var showResetConfirmation = false
+
+ var body: some View {
+  VStack(alignment: .leading, spacing: 12) {
+   Text("These system instructions wrap every enhancement prompt. They tell the AI how to behave as a transcription enhancer. The `%@` placeholder is where your selected prompt's rules get inserted.")
+    .font(.caption)
+    .foregroundColor(.secondary)
+
+   TextEditor(text: $instructionsText)
+    .font(.system(.body, design: .monospaced))
+    .frame(minHeight: 300)
+    .padding(4)
+    .background(Color(NSColor.textBackgroundColor))
+    .cornerRadius(8)
+    .overlay(
+     RoundedRectangle(cornerRadius: 8)
+      .stroke(Color.secondary.opacity(0.3), lineWidth: 1)
+    )
+    .onChange(of: instructionsText) { _, _ in
+     hasChanges = instructionsText != AIPrompts.customPromptTemplate
+    }
+
+   HStack {
+    Button("Reset to Default") {
+     showResetConfirmation = true
+    }
+    .foregroundColor(.red)
+    .alert("Reset System Instructions?", isPresented: $showResetConfirmation) {
+     Button("Reset", role: .destructive) {
+      AIPrompts.resetSystemInstructions()
+      instructionsText = AIPrompts.customPromptTemplate
+      hasChanges = false
+     }
+     Button("Cancel", role: .cancel) {}
+    } message: {
+     Text("This will restore the default system instructions. Your current changes will be lost.")
+    }
+
+    Spacer()
+
+    if hasChanges {
+     Text("Unsaved changes")
+      .font(.caption)
+      .foregroundColor(.orange)
+    }
+
+    Button("Save") {
+     AIPrompts.saveSystemInstructions(instructionsText)
+     hasChanges = false
+    }
+    .disabled(!hasChanges)
+    .buttonStyle(.borderedProminent)
+   }
+  }
+ }
 }
 
 // MARK: - Drop Delegate

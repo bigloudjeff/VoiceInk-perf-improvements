@@ -20,6 +20,7 @@ extension UserDefaults {
         static let isToggleEnhancementShortcutEnabled = "isToggleEnhancementShortcutEnabled"
         static let selectedPromptId = "selectedPromptId"
         static let customPrompts = "customPrompts"
+        static let systemInstructionsTemplate = "systemInstructionsTemplate"
 
         // Ollama
         static let ollamaSelectedModel = "ollamaSelectedModel"
