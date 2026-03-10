@@ -5,6 +5,7 @@ import KeyboardShortcuts
 // ViewType enum with all cases
 enum ViewType: String, CaseIterable, Identifiable {
     case metrics = "Dashboard"
+    case pipeline = "Pipeline"
     case transcribeAudio = "Transcribe Audio"
     case history = "History"
     case models = "AI Models"
@@ -22,6 +23,7 @@ enum ViewType: String, CaseIterable, Identifiable {
     var icon: String {
         switch self {
         case .metrics: return "gauge.medium"
+        case .pipeline: return "point.3.connected.trianglepath.dotted"
         case .transcribeAudio: return "waveform.circle.fill"
         case .history: return "doc.text.fill"
         case .models: return "brain.head.profile"
@@ -33,6 +35,26 @@ enum ViewType: String, CaseIterable, Identifiable {
         case .dictionary: return "character.book.closed.fill"
         case .settings: return "gearshape.fill"
         case .license: return "checkmark.seal.fill"
+        }
+    }
+
+    /// Display name in the sidebar (may differ from rawValue).
+    var displayName: String {
+        switch self {
+        case .settings: return "Preferences"
+        default: return rawValue
+        }
+    }
+
+    /// Whether this view type appears in the sidebar.
+    /// Removed items are still navigable via URL scheme / notifications
+    /// but are absorbed into the Pipeline or Preferences views.
+    var isVisibleInSidebar: Bool {
+        switch self {
+        case .enhancement, .postProcessing, .audioInput, .models, .dictionary:
+            return false
+        default:
+            return true
         }
     }
 }
@@ -86,6 +108,7 @@ struct ContentView: View {
 
     private var visibleViewTypes: [ViewType] {
         ViewType.allCases.filter { viewType in
+            guard viewType.isVisibleInSidebar else { return false }
             if viewType == .powerMode {
                 return powerModeUIFlag
             }
@@ -233,10 +256,10 @@ struct ContentView: View {
         .onReceive(NotificationCenter.default.publisher(for: .navigateToDestination)) { notification in
             if let destination = notification.userInfo?["destination"] as? String {
                 switch destination {
-                case "Settings":
+                case "Settings", "Preferences":
                     selectedView = .settings
                 case "AI Models":
-                    selectedView = .models
+                    selectedView = .pipeline
                 case "VoiceInk Pro":
                     selectedView = .license
                 case "History":
@@ -247,9 +270,11 @@ struct ContentView: View {
                 case "Permissions":
                     selectedView = .permissions
                 case "Enhancement":
-                    selectedView = .enhancement
+                    selectedView = .pipeline
                 case "Post Processing":
-                    selectedView = .postProcessing
+                    selectedView = .pipeline
+                case "Pipeline":
+                    selectedView = .pipeline
                 case "Transcribe Audio":
                     selectedView = .transcribeAudio
                 case "Power Mode":
@@ -257,9 +282,9 @@ struct ContentView: View {
                 case "Dashboard":
                     selectedView = .metrics
                 case "Dictionary":
-                    selectedView = .dictionary
+                    selectedView = .pipeline
                 case "Audio Input":
-                    selectedView = .audioInput
+                    selectedView = .pipeline
                 default:
                     break
                 }
@@ -272,21 +297,16 @@ struct ContentView: View {
         switch viewType {
         case .metrics:
             MetricsView()
-        case .models:
-            ModelManagementView(whisperState: whisperState)
-        case .enhancement:
-            EnhancementSettingsView()
-        case .postProcessing:
-            PostProcessingSettingsView()
+        case .pipeline:
+            PipelineView(selectedView: $selectedView)
+        case .models, .enhancement, .postProcessing, .audioInput, .dictionary:
+            // These are now absorbed into Pipeline
+            PipelineView(selectedView: $selectedView)
         case .transcribeAudio:
             AudioTranscribeView()
         case .history:
             Text("History")
                 .foregroundColor(.secondary)
-        case .audioInput:
-            AudioInputSettingsView()
-        case .dictionary:
-            DictionarySettingsView(whisperPrompt: whisperState.whisperPrompt)
         case .powerMode:
             PowerModeView()
         case .settings:
@@ -309,7 +329,7 @@ private struct SidebarItemView: View {
                 .font(.system(size: 18, weight: .medium))
                 .frame(width: 24, height: 24)
 
-            Text(viewType.rawValue)
+            Text(viewType.displayName)
                 .font(.system(size: 14, weight: .medium))
 
             Spacer()

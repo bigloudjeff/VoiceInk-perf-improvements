@@ -238,10 +238,12 @@ enum VoiceInkURLHandler {
 
  private static func handleNavigate(path: String) {
   let destinations = [
-   "dashboard": "Dashboard", "history": "History", "models": "AI Models",
-   "enhancement": "Enhancement", "postprocessing": "Post Processing",
+   "dashboard": "Dashboard", "pipeline": "Pipeline",
+   "history": "History", "models": "Pipeline",
+   "enhancement": "Pipeline", "postprocessing": "Pipeline",
    "powermode": "Power Mode", "permissions": "Permissions",
-   "audio": "Audio Input", "dictionary": "Dictionary", "settings": "Settings",
+   "audio": "Pipeline", "dictionary": "Pipeline",
+   "settings": "Settings", "preferences": "Settings",
    "transcribe": "Transcribe Audio", "pro": "VoiceInk Pro"
   ]
   if let destination = destinations[path.lowercased()] {

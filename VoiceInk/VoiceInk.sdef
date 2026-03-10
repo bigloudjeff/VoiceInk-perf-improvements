@@ -121,7 +121,7 @@
 
   <command name="show window" code="VoIkShWn" description="Show the main window and navigate to a view.">
    <cocoa class="VoiceInk.ShowWindowCommand"/>
-   <direct-parameter type="text" optional="yes" description="The view to navigate to: Dashboard, History, AI Models, Enhancement, Post Processing, Power Mode, Permissions, Audio Input, Dictionary, Settings, Transcribe Audio, VoiceInk Pro."/>
+   <direct-parameter type="text" optional="yes" description="The view to navigate to: Dashboard, Pipeline, Transcribe Audio, History, Power Mode, Permissions, Preferences, VoiceInk Pro. Legacy names (AI Models, Enhancement, Post Processing, Audio Input, Dictionary, Settings) are accepted and route to Pipeline or Preferences."/>
    <result type="text" description="The view shown."/>
   </command>
 

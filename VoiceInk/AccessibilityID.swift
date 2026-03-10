@@ -262,6 +262,14 @@ enum AccessibilityID {
   static let statusDisplay = "recorder.status.display"
  }
 
+ // MARK: - Pipeline
+
+ enum Pipeline {
+  static let view = "pipeline.view"
+  static let livePreview = "pipeline.livePreview"
+  static func stageCard(_ name: String) -> String { "pipeline.card.\(name)" }
+ }
+
  // MARK: - Common / Reusable
 
  enum Common {

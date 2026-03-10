@@ -165,9 +165,9 @@ struct VoiceInkURLHandlerTests {
 
  @Test func allNavigatePathsValid() {
   let validPaths = [
-   "dashboard", "history", "models", "enhancement", "postprocessing",
-   "powermode", "permissions", "audio", "dictionary", "settings",
-   "transcribe", "pro", "history-window"
+   "dashboard", "pipeline", "history", "models", "enhancement",
+   "postprocessing", "powermode", "permissions", "audio", "dictionary",
+   "settings", "preferences", "transcribe", "pro", "history-window"
   ]
   for path in validPaths {
    let url = URL(string: "voiceink://navigate/\(path)")!

@@ -10,29 +10,13 @@ struct SettingsView: View {
     @EnvironmentObject private var hotkeyManager: HotkeyManager
     @EnvironmentObject private var whisperState: WhisperState
     @EnvironmentObject private var enhancementService: AIEnhancementService
-    @StateObject private var deviceManager = AudioDeviceManager.shared
     @ObservedObject private var soundManager = SoundManager.shared
     @ObservedObject private var mediaController = MediaController.shared
     @ObservedObject private var playbackController = PlaybackController.shared
     @AppStorage(UserDefaults.Keys.hasCompletedOnboarding) private var hasCompletedOnboarding = true
     @AppStorage(UserDefaults.Keys.autoUpdateCheck) private var autoUpdateCheck = true
     @AppStorage(UserDefaults.Keys.enableAnnouncements) private var enableAnnouncements = true
-    @AppStorage(UserDefaults.Keys.restoreClipboardAfterPaste) private var restoreClipboardAfterPaste = true
-    @AppStorage(UserDefaults.Keys.clipboardRestoreDelay) private var clipboardRestoreDelay = 0.25
-    @AppStorage(UserDefaults.Keys.useAppleScriptPaste) private var useAppleScriptPaste = false
-    @AppStorage(UserDefaults.Keys.pasteMethod) private var pasteMethod = "default"
-    @AppStorage(UserDefaults.Keys.typeOutDelay) private var typeOutDelay = 3.0
-    @AppStorage(UserDefaults.Keys.warnNoTextField) private var warnNoTextField = true
     @State private var showResetOnboardingAlert = false
-    @State private var currentShortcut = KeyboardShortcuts.getShortcut(for: .toggleMiniRecorder)
-    @State private var isCustomCancelEnabled = KeyboardShortcuts.getShortcut(for: .cancelRecorder) != nil
-
-    // Expansion states - all collapsed by default
-    @State private var isCustomCancelExpanded = false
-    @State private var isMiddleClickExpanded = false
-    @State private var isSoundFeedbackExpanded = false
-    @State private var isMuteSystemExpanded = false
-    @State private var isRestoreClipboardExpanded = false
 
     var body: some View {
         Form {
@@ -45,242 +29,8 @@ struct SettingsView: View {
                 }
             }
 
-            // MARK: - Shortcuts
-            Section {
-                LabeledContent("Hotkey 1") {
-                    HStack(spacing: 8) {
-                        hotkeyPicker(binding: $hotkeyManager.selectedHotkey1)
-                        if hotkeyManager.selectedHotkey1 == .custom {
-                            KeyboardShortcuts.Recorder(for: .toggleMiniRecorder)
-                                .controlSize(.small)
-                        }
-                        if hotkeyManager.selectedHotkey1.isModifierKey {
-                            Text("+")
-                                .foregroundColor(.secondary)
-                            companionModifierPicker(
-                                binding: $hotkeyManager.companionModifier1,
-                                excluding: hotkeyManager.selectedHotkey1
-                            )
-                        }
-                    }
-                }
-
-                if hotkeyManager.selectedHotkey2 != .none {
-                    LabeledContent("Hotkey 2") {
-                        HStack(spacing: 8) {
-                            hotkeyPicker(binding: $hotkeyManager.selectedHotkey2)
-                            if hotkeyManager.selectedHotkey2 == .custom {
-                                KeyboardShortcuts.Recorder(for: .toggleMiniRecorder2)
-                                    .controlSize(.small)
-                            }
-                            if hotkeyManager.selectedHotkey2.isModifierKey {
-                                Text("+")
-                                    .foregroundColor(.secondary)
-                                companionModifierPicker(
-                                    binding: $hotkeyManager.companionModifier2,
-                                    excluding: hotkeyManager.selectedHotkey2
-                                )
-                            }
-                            Button {
-                                withAnimation { hotkeyManager.selectedHotkey2 = .none }
-                            } label: {
-                                Image(systemName: "minus.circle.fill")
-                                    .foregroundColor(.secondary)
-                            }
-                            .buttonStyle(.plain)
-                        }
-                    }
-                }
-
-                if hotkeyManager.selectedHotkey1 != .none && hotkeyManager.selectedHotkey2 == .none {
-                    Button("Add Second Hotkey") {
-                        withAnimation { hotkeyManager.selectedHotkey2 = .rightOption }
-                    }
-                    .accessibilityIdentifier(AccessibilityID.Settings.buttonAddSecondHotkey)
-                }
-                Picker("Recording Mode", selection: $hotkeyManager.recordingMode) {
-                    ForEach(HotkeyManager.RecordingMode.allCases, id: \.self) { mode in
-                        Text(mode.displayName).tag(mode)
-                    }
-                }
-                .accessibilityIdentifier(AccessibilityID.Settings.pickerRecordingMode)
-
-            } header: {
-                Text("Shortcuts")
-            } footer: {
-                switch hotkeyManager.recordingMode {
-                case .pushToTalk:
-                    Text("Hold the hotkey to record, release to stop and transcribe.")
-                case .toggle:
-                    Text("Press the hotkey to start recording, press again to stop.")
-                case .hybrid:
-                    Text("Quick tap for hands-free recording, hold for push-to-talk.")
-                }
-            }
-
-            // MARK: - Additional Shortcuts
-            Section("Additional Shortcuts") {
-                LabeledContent("Paste Last Transcription (Original)") {
-                    KeyboardShortcuts.Recorder(for: .pasteLastTranscription)
-                        .controlSize(.small)
-                }
-
-                LabeledContent("Paste Last Transcription (Enhanced)") {
-                    KeyboardShortcuts.Recorder(for: .pasteLastEnhancement)
-                        .controlSize(.small)
-                }
-
-                LabeledContent("Retry Last Transcription") {
-                    KeyboardShortcuts.Recorder(for: .retryLastTranscription)
-                        .controlSize(.small)
-                }
-
-                LabeledContent("Type Last Transcription") {
-                    KeyboardShortcuts.Recorder(for: .typeLastTranscription)
-                        .controlSize(.small)
-                }
-
-                // Custom Cancel - hierarchical
-                ExpandableSettingsRow(
-                    isExpanded: $isCustomCancelExpanded,
-                    isEnabled: $isCustomCancelEnabled,
-                    label: "Custom Cancel Shortcut"
-                ) {
-                    LabeledContent("Shortcut") {
-                        KeyboardShortcuts.Recorder(for: .cancelRecorder)
-                            .controlSize(.small)
-                    }
-                }
-                .onChange(of: isCustomCancelEnabled) { _, newValue in
-                    if !newValue {
-                        KeyboardShortcuts.setShortcut(nil, for: .cancelRecorder)
-                        isCustomCancelExpanded = false
-                    }
-                }
-
-                // Middle-Click
-                ExpandableSettingsRow(
-                    isExpanded: $isMiddleClickExpanded,
-                    isEnabled: $hotkeyManager.isMiddleClickToggleEnabled,
-                    label: "Middle-Click Recording"
-                ) {
-                    LabeledContent("Activation Delay") {
-                        HStack {
-                            TextField("", value: $hotkeyManager.middleClickActivationDelay, formatter: {
-                                let formatter = NumberFormatter()
-                                formatter.minimum = 0
-                                return formatter
-                            }())
-                                .textFieldStyle(.roundedBorder)
-                                .frame(width: 60)
-                            Text("ms")
-                                .foregroundColor(.secondary)
-                        }
-                    }
-                }
-            }
-
-            // MARK: - Recording Feedback
-            Section("Recording Feedback") {
-                // Sound Feedback
-                ExpandableSettingsRow(
-                    isExpanded: $isSoundFeedbackExpanded,
-                    isEnabled: $soundManager.isEnabled,
-                    label: "Sound Feedback"
-                ) {
-                    CustomSoundSettingsView()
-                }
-                .accessibilityIdentifier(AccessibilityID.Settings.toggleSoundFeedback)
-
-                // Mute System Audio
-                ExpandableSettingsRow(
-                    isExpanded: $isMuteSystemExpanded,
-                    isEnabled: $mediaController.isSystemMuteEnabled,
-                    label: "Mute Audio While Recording"
-                ) {
-                    Picker("Resume Delay", selection: $mediaController.audioResumptionDelay) {
-                        Text("0s").tag(0.0)
-                        Text("1s").tag(1.0)
-                        Text("2s").tag(2.0)
-                        Text("3s").tag(3.0)
-                        Text("4s").tag(4.0)
-                        Text("5s").tag(5.0)
-                    }
-                }
-                .accessibilityIdentifier(AccessibilityID.Settings.toggleMuteAudio)
-
-                // Restore Clipboard
-                ExpandableSettingsRow(
-                    isExpanded: $isRestoreClipboardExpanded,
-                    isEnabled: $restoreClipboardAfterPaste,
-                    label: "Restore Clipboard After Paste"
-                ) {
-                    Picker("Restore Delay", selection: $clipboardRestoreDelay) {
-                        Text("250ms").tag(0.25)
-                        Text("500ms").tag(0.5)
-                        Text("1s").tag(1.0)
-                        Text("2s").tag(2.0)
-                        Text("3s").tag(3.0)
-                        Text("4s").tag(4.0)
-                        Text("5s").tag(5.0)
-                    }
-                }
-                .accessibilityIdentifier(AccessibilityID.Settings.toggleRestoreClipboard)
-
-                // Paste Method
-                Picker(selection: $pasteMethod) {
-                    Text("Paste").tag("default")
-                    Text("AppleScript").tag("appleScript")
-                    Text("Type Out").tag("typeOut")
-                } label: {
-                    HStack(spacing: 4) {
-                        Text("Paste Method")
-                        InfoTip("Paste uses simulated Cmd+V. AppleScript works with custom keyboard layouts (e.g. Neo2). Type Out types text character-by-character, bypassing paste restrictions in some apps.")
-                    }
-                }
-                .accessibilityIdentifier(AccessibilityID.Settings.pickerPasteMethod)
-
-                Picker("Type Out Delay", selection: $typeOutDelay) {
-                    Text("1s").tag(1.0)
-                    Text("2s").tag(2.0)
-                    Text("3s").tag(3.0)
-                    Text("5s").tag(5.0)
-                    Text("8s").tag(8.0)
-                }
-                .accessibilityIdentifier(AccessibilityID.Settings.pickerTypeOutDelay)
-
-                // Text Field Detection
-                Toggle(isOn: $warnNoTextField) {
-                    HStack(spacing: 4) {
-                        Text("Warn When No Text Field Detected")
-                        InfoTip("Shows a warning when no editable text field is focused. Transcription will be copied to clipboard instead of pasted.")
-                    }
-                }
-                .accessibilityIdentifier(AccessibilityID.Settings.toggleWarnNoTextField)
-            }
-
             // MARK: - Power Mode
             PowerModeSection()
-
-            // MARK: - Interface
-            Section("Interface") {
-                Picker("Recorder Style", selection: $whisperState.recorderType) {
-                    Text("Notch").tag("notch")
-                    Text("Mini").tag("mini")
-                }
-                .pickerStyle(.segmented)
-                .accessibilityIdentifier(AccessibilityID.Settings.pickerRecorderStyle)
-
-                Picker("Display", selection: $whisperState.recorderScreenSelection) {
-                    Text("Active Window").tag("activeWindow")
-                    Text("Mouse Cursor").tag("mouseCursor")
-                    Text("Primary Display").tag("primaryDisplay")
-                }
-                .accessibilityIdentifier(AccessibilityID.Settings.pickerDisplay)
-            }
-
-            // MARK: - Experimental
-            ExperimentalSection()
 
             // MARK: - General
             Section("General") {
@@ -386,34 +136,6 @@ struct SettingsView: View {
         } message: {
             Text("You'll see the introduction screens again the next time you launch the app.")
         }
-    }
-
-    @ViewBuilder
-    private func hotkeyPicker(binding: Binding<HotkeyManager.HotkeyOption>) -> some View {
-        Picker("", selection: binding) {
-            ForEach(HotkeyManager.HotkeyOption.allCases, id: \.self) { option in
-                Text(option.displayName).tag(option)
-            }
-        }
-        .labelsHidden()
-        .frame(width: 140)
-    }
-
-    @ViewBuilder
-    private func companionModifierPicker(
-        binding: Binding<HotkeyManager.CompanionModifier>,
-        excluding hotkey: HotkeyManager.HotkeyOption
-    ) -> some View {
-        let excludedFlag = hotkey.modifierFlag
-        Picker("", selection: binding) {
-            ForEach(HotkeyManager.CompanionModifier.allCases, id: \.self) { mod in
-                if mod == .none || mod.flag != excludedFlag {
-                    Text(mod.displayName).tag(mod)
-                }
-            }
-        }
-        .labelsHidden()
-        .frame(width: 120)
     }
 }
 
@@ -539,36 +261,6 @@ struct PowerModeSection: View {
                 }
             }
         )
-    }
-}
-
-// MARK: - Experimental Section
-
-struct ExperimentalSection: View {
-    @ObservedObject private var playbackController = PlaybackController.shared
-    @ObservedObject private var mediaController = MediaController.shared
-    @State private var isPauseMediaExpanded = false
-
-    var body: some View {
-        Section {
-            ExpandableSettingsRow(
-                isExpanded: $isPauseMediaExpanded,
-                isEnabled: $playbackController.isPauseMediaEnabled,
-                label: "Pause Media While Recording",
-                infoMessage: "Pauses playing media when recording starts and resumes when done."
-            ) {
-                Picker("Resume Delay", selection: $mediaController.audioResumptionDelay) {
-                    Text("0s").tag(0.0)
-                    Text("1s").tag(1.0)
-                    Text("2s").tag(2.0)
-                    Text("3s").tag(3.0)
-                    Text("4s").tag(4.0)
-                    Text("5s").tag(5.0)
-                }
-            }
-        } header: {
-            Text("Experimental")
-        }
     }
 }
 
