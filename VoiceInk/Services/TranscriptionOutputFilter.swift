@@ -9,6 +9,12 @@ struct TranscriptionOutputFilter {
   [#"\[.*?\]"#, #"\(.*?\)"#, #"\{.*?\}"#].compactMap { try? NSRegularExpression(pattern: $0) }
  }()
 
+ private static var fillerWordRegexCache: [String: NSRegularExpression] = [:]
+
+ static func invalidateFillerWordCache() {
+  fillerWordRegexCache.removeAll()
+ }
+
  static func filter(_ text: String, fillerWordProvider: FillerWordProviding = FillerWordManager.shared) -> String {
   var filteredText = text
 
@@ -49,11 +55,17 @@ struct TranscriptionOutputFilter {
   guard isEnabled, !fillerWords.isEmpty else { return text }
   var result = text
   for fillerWord in fillerWords {
-   let pattern = "\\b\(NSRegularExpression.escapedPattern(for: fillerWord))\\b[,.]?"
-   if let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive) {
-    let range = NSRange(result.startIndex..., in: result)
-    result = regex.stringByReplacingMatches(in: result, options: [], range: range, withTemplate: "")
+   let regex: NSRegularExpression
+   if let cached = fillerWordRegexCache[fillerWord] {
+    regex = cached
+   } else {
+    let pattern = "\\b\(NSRegularExpression.escapedPattern(for: fillerWord))\\b[,.]?"
+    guard let compiled = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive) else { continue }
+    fillerWordRegexCache[fillerWord] = compiled
+    regex = compiled
    }
+   let range = NSRange(result.startIndex..., in: result)
+   result = regex.stringByReplacingMatches(in: result, options: [], range: range, withTemplate: "")
   }
   return result
  }

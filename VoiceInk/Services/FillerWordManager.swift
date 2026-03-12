@@ -14,6 +14,7 @@ class FillerWordManager: ObservableObject, FillerWordProviding {
     @Published var fillerWords: [String] {
         didSet {
             UserDefaults.standard.set(fillerWords, forKey: fillerWordsKey)
+            TranscriptionOutputFilter.invalidateFillerWordCache()
         }
     }
 
