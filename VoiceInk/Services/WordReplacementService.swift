@@ -24,8 +24,32 @@ class WordReplacementService: WordReplacing {
             return text
         }
 
-        let pairs = replacements.map { (originalText: $0.originalText, replacementText: $0.replacementText) }
-        return Self.applyReplacements(to: text, pairs: pairs)
+        var modifiedText = text
+
+        for replacement in replacements {
+            let variants = replacement.originalText
+                .split(separator: ",")
+                .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+                .filter { !$0.isEmpty }
+
+            for original in variants {
+                if Self.usesWordBoundaries(for: original) {
+                    if let regex = cachedRegex(for: original) {
+                        let range = NSRange(modifiedText.startIndex..., in: modifiedText)
+                        modifiedText = regex.stringByReplacingMatches(
+                            in: modifiedText,
+                            options: [],
+                            range: range,
+                            withTemplate: replacement.replacementText
+                        )
+                    }
+                } else {
+                    modifiedText = modifiedText.replacingOccurrences(of: original, with: replacement.replacementText, options: .caseInsensitive)
+                }
+            }
+        }
+
+        return modifiedText
     }
 
     /// Pure transformation: apply replacement pairs to text without SwiftData dependency.
