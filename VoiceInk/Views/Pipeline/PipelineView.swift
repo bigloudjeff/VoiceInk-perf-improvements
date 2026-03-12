@@ -3,7 +3,7 @@ import SwiftData
 
 struct PipelineView: View {
  @Binding var selectedView: ViewType?
- @State private var selectedStage: PipelineStage = .outputFilters
+ @Binding var selectedStage: PipelineStage?
 
  @AppStorage(UserDefaults.Keys.removeFillerWords) private var removeFillerWords = true
  @AppStorage(UserDefaults.Keys.removeTagBlocks) private var removeTagBlocks = true
@@ -13,6 +13,10 @@ struct PipelineView: View {
 
  @Environment(\.modelContext) private var modelContext
 
+ private var currentStage: PipelineStage {
+  selectedStage ?? .recording
+ }
+
  private var previewResults: [PipelinePreviewEngine.StageResult] {
   let pairs = fetchReplacementPairs()
   return PipelinePreviewEngine.run(wordReplacementPairs: pairs)
@@ -20,41 +24,11 @@ struct PipelineView: View {
 
  var body: some View {
   VStack(spacing: 0) {
-   HSplitView {
-    // Left column: stage list
-    ScrollView {
-     VStack(spacing: 0) {
-      ForEach(PipelineStage.allCases) { stage in
-       Button {
-        selectedStage = stage
-       } label: {
-        PipelineStageCard(
-         stage: stage,
-         isSelected: selectedStage == stage,
-         isEnabled: isStageEnabled(stage)
-        )
-       }
-       .buttonStyle(.plain)
-
-       if stage != PipelineStage.allCases.last {
-        Image(systemName: "chevron.down")
-         .font(.system(size: 10))
-         .foregroundColor(.secondary.opacity(0.5))
-         .frame(height: 16)
-       }
-      }
-     }
-     .padding(12)
-    }
-    .frame(minWidth: 200, idealWidth: 220, maxWidth: 260)
-
-    // Right column: detail for selected stage
-    PipelineStageDetailView(
-     stage: selectedStage,
-     selectedView: $selectedView
-    )
-    .frame(minWidth: 400)
-   }
+   // Stage detail content (full width)
+   PipelineStageDetailView(
+    stage: currentStage,
+    selectedView: $selectedView
+   )
 
    Divider()
 
@@ -63,20 +37,10 @@ struct PipelineView: View {
     .padding(12)
   }
   .accessibilityIdentifier(AccessibilityID.Pipeline.view)
- }
-
- private func isStageEnabled(_ stage: PipelineStage) -> Bool {
-  switch stage {
-  case .recording, .speechToText, .pasteOutput:
-   return true
-  case .outputFilters:
-   return removeFillerWords || removeTagBlocks || removeBracketedContent
-  case .textFormatting:
-   return textFormattingEnabled
-  case .wordReplacement:
-   return true // always active when replacements exist
-  case .aiEnhancement:
-   return aiEnhancementEnabled
+  .onAppear {
+   if selectedStage == nil {
+    selectedStage = .recording
+   }
   }
  }
 

@@ -216,7 +216,7 @@ struct EnhancementSettingsView: View {
                 .zIndex(2)
             }
         }
-        .frame(minWidth: 500, minHeight: 400)
+        .frame(minHeight: 400)
     }
 }
 

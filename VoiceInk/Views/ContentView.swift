@@ -84,6 +84,8 @@ struct ContentView: View {
     @EnvironmentObject private var hotkeyManager: HotkeyManager
     @AppStorage(UserDefaults.Keys.powerModeUIFlag) private var powerModeUIFlag = false
     @State private var selectedView: ViewType? = .metrics
+    @State private var selectedPipelineStage: PipelineStage? = nil
+    @State private var isPipelineExpanded: Bool = false
     @State private var pendingView: ViewType?
     @State private var showUnsavedChangesAlert = false
     @State private var searchText = ""
@@ -179,8 +181,45 @@ struct ContentView: View {
 
                     if searchText.isEmpty {
                     ForEach(visibleViewTypes) { viewType in
-                        Section {
-                            if viewType == .history {
+                        if viewType == .pipeline {
+                            Section {
+                                Button {
+                                    withAnimation(.easeInOut(duration: 0.2)) {
+                                        isPipelineExpanded.toggle()
+                                    }
+                                } label: {
+                                    HStack {
+                                        SidebarItemView(viewType: viewType)
+                                        Image(systemName: "chevron.right")
+                                            .font(.system(size: 10, weight: .semibold))
+                                            .foregroundColor(.secondary)
+                                            .rotationEffect(.degrees(isPipelineExpanded ? 90 : 0))
+                                    }
+                                }
+                                .buttonStyle(.plain)
+                                .accessibilityIdentifier(AccessibilityID.Sidebar.navLink(viewType.rawValue))
+                                .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
+                                .listRowSeparator(.hidden)
+
+                                if isPipelineExpanded {
+                                    ForEach(PipelineStage.allCases) { stage in
+                                        Button {
+                                            selectedPipelineStage = stage
+                                            selectedView = .pipeline
+                                        } label: {
+                                            PipelineSidebarItem(
+                                                stage: stage,
+                                                isSelected: selectedView == .pipeline && selectedPipelineStage == stage
+                                            )
+                                        }
+                                        .buttonStyle(.plain)
+                                        .listRowInsets(EdgeInsets(top: 0, leading: 8, bottom: 0, trailing: 0))
+                                        .listRowSeparator(.hidden)
+                                    }
+                                }
+                            }
+                        } else if viewType == .history {
+                            Section {
                                 Button(action: {
                                     HistoryWindowController.shared.showHistoryWindow(
                                         modelContainer: modelContext.container,
@@ -193,7 +232,9 @@ struct ContentView: View {
                                 .buttonStyle(.plain)
                                 .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
                                 .listRowSeparator(.hidden)
-                            } else {
+                            }
+                        } else {
+                            Section {
                                 NavigationLink(value: viewType) {
                                     SidebarItemView(viewType: viewType)
                                 }
@@ -259,6 +300,7 @@ struct ContentView: View {
                 case "Settings", "Preferences":
                     selectedView = .settings
                 case "AI Models":
+                    selectedPipelineStage = .speechToText
                     selectedView = .pipeline
                 case "VoiceInk Pro":
                     selectedView = .license
@@ -270,8 +312,10 @@ struct ContentView: View {
                 case "Permissions":
                     selectedView = .permissions
                 case "Enhancement":
+                    selectedPipelineStage = .aiEnhancement
                     selectedView = .pipeline
                 case "Post Processing":
+                    selectedPipelineStage = .textFormatting
                     selectedView = .pipeline
                 case "Pipeline":
                     selectedView = .pipeline
@@ -282,8 +326,10 @@ struct ContentView: View {
                 case "Dashboard":
                     selectedView = .metrics
                 case "Dictionary":
+                    selectedPipelineStage = .wordReplacement
                     selectedView = .pipeline
                 case "Audio Input":
+                    selectedPipelineStage = .recording
                     selectedView = .pipeline
                 default:
                     break
@@ -298,10 +344,10 @@ struct ContentView: View {
         case .metrics:
             MetricsView()
         case .pipeline:
-            PipelineView(selectedView: $selectedView)
+            PipelineView(selectedView: $selectedView, selectedStage: $selectedPipelineStage)
         case .models, .enhancement, .postProcessing, .audioInput, .dictionary:
             // These are now absorbed into Pipeline
-            PipelineView(selectedView: $selectedView)
+            PipelineView(selectedView: $selectedView, selectedStage: $selectedPipelineStage)
         case .transcribeAudio:
             AudioTranscribeView()
         case .history:
@@ -338,6 +384,37 @@ private struct SidebarItemView: View {
         .contentShape(Rectangle())
         .padding(.vertical, 8)
         .padding(.horizontal, 2)
+    }
+}
+
+private struct PipelineSidebarItem: View {
+    let stage: PipelineStage
+    let isSelected: Bool
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Circle()
+                .fill(isSelected ? stage.color : stage.color.opacity(0.3))
+                .frame(width: 8, height: 8)
+
+            Image(systemName: stage.icon)
+                .font(.system(size: 12))
+                .foregroundColor(isSelected ? stage.color : .secondary)
+                .frame(width: 16)
+
+            Text(stage.title)
+                .font(.system(size: 13, weight: isSelected ? .semibold : .regular))
+                .foregroundColor(isSelected ? .primary : .secondary)
+
+            Spacer()
+        }
+        .padding(.vertical, 4)
+        .padding(.horizontal, 4)
+        .background(
+            RoundedRectangle(cornerRadius: 6)
+                .fill(isSelected ? Color.accentColor.opacity(0.1) : Color.clear)
+        )
+        .contentShape(Rectangle())
     }
 }
 

@@ -36,77 +36,61 @@ struct DictionarySettingsView: View {
     
     var body: some View {
         ScrollView {
-            VStack(spacing: 0) {
-                heroSection
-                mainContent
+            VStack(spacing: 16) {
+                sectionSelector
+                selectedSectionContent
             }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
         }
-        .frame(minWidth: 600, minHeight: 500)
         .background(Color(NSColor.controlBackgroundColor))
     }
-    
-    private var heroSection: some View {
-        CompactHeroSection(
-            icon: "brain.filled.head.profile",
-            title: "Dictionary Settings",
-            description: "Enhance VoiceInk's transcription accuracy by teaching it your vocabulary",
-            maxDescriptionWidth: 500
-        )
-    }
-    
-    private var mainContent: some View {
-        VStack(spacing: 40) {
-            sectionSelector
-            
-            selectedSectionContent
-        }
-        .padding(.horizontal, 32)
-        .padding(.vertical, 40)
-    }
-    
+
     private var sectionSelector: some View {
-        VStack(alignment: .leading, spacing: 20) {
-            HStack {
-                Text("Select Section")
-                    .font(.title2)
-                    .fontWeight(.semibold)
-
-                Spacer()
-
-                HStack(spacing: 12) {
-                    Button(action: {
-                        DictionaryImportExportService.shared.importDictionary(into: modelContext)
-                    }) {
-                        Image(systemName: "square.and.arrow.down")
-                            .font(.system(size: 18))
-                            .foregroundColor(.blue)
+        HStack(spacing: 8) {
+            ForEach(DictionarySection.allCases, id: \.self) { section in
+                Button {
+                    selectedSection = section
+                } label: {
+                    HStack(spacing: 4) {
+                        Image(systemName: section.icon)
+                            .font(.system(size: 11))
+                        Text(section.rawValue)
+                            .font(.system(size: 12, weight: .medium))
                     }
-                    .buttonStyle(.plain)
-                    .accessibilityIdentifier(AccessibilityID.Dictionary.buttonImport)
-                    .help("Import vocabulary and word replacements")
-
-                    Button(action: {
-                        DictionaryImportExportService.shared.exportDictionary(from: modelContext)
-                    }) {
-                        Image(systemName: "square.and.arrow.up")
-                            .font(.system(size: 18))
-                            .foregroundColor(.blue)
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityIdentifier(AccessibilityID.Dictionary.buttonExport)
-                    .help("Export vocabulary and word replacements")
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 6)
+                    .background(selectedSection == section ? Color.accentColor.opacity(0.15) : Color.clear)
+                    .foregroundColor(selectedSection == section ? .accentColor : .secondary)
+                    .cornerRadius(6)
                 }
+                .buttonStyle(.plain)
+                .help(section.description)
             }
 
-            HStack(spacing: 20) {
-                ForEach(DictionarySection.allCases, id: \.self) { section in
-                    SectionCard(
-                        section: section,
-                        isSelected: selectedSection == section,
-                        action: { selectedSection = section }
-                    )
-                }
+            Spacer()
+
+            Button(action: {
+                DictionaryImportExportService.shared.importDictionary(into: modelContext)
+            }) {
+                Image(systemName: "square.and.arrow.down")
+                    .font(.system(size: 14))
+                    .foregroundColor(.blue)
             }
+            .buttonStyle(.plain)
+            .accessibilityIdentifier(AccessibilityID.Dictionary.buttonImport)
+            .help("Import vocabulary and word replacements")
+
+            Button(action: {
+                DictionaryImportExportService.shared.exportDictionary(from: modelContext)
+            }) {
+                Image(systemName: "square.and.arrow.up")
+                    .font(.system(size: 14))
+                    .foregroundColor(.blue)
+            }
+            .buttonStyle(.plain)
+            .accessibilityIdentifier(AccessibilityID.Dictionary.buttonExport)
+            .help("Export vocabulary and word replacements")
         }
     }
     

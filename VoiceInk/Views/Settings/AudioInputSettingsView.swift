@@ -5,17 +5,7 @@ struct AudioInputSettingsView: View {
     @Environment(\.colorScheme) private var colorScheme
     
     var body: some View {
-        ScrollView {
-            VStack(spacing: 0) {
-                heroSection
-                mainContent
-            }
-        }
-        .background(Color(NSColor.controlBackgroundColor))
-    }
-    
-    private var mainContent: some View {
-        VStack(spacing: 40) {
+        VStack(spacing: 16) {
             inputModeSection
 
             switch audioDeviceManager.inputMode {
@@ -27,23 +17,12 @@ struct AudioInputSettingsView: View {
                 prioritizedDevicesSection
             }
         }
-        .padding(.horizontal, 32)
-        .padding(.vertical, 40)
-    }
-    
-    private var heroSection: some View {
-        CompactHeroSection(
-            icon: "waveform",
-            title: "Audio Input",
-            description: "Configure your microphone preferences"
-        )
     }
     
     private var inputModeSection: some View {
         VStack(alignment: .leading, spacing: 20) {
             Text("Input Mode")
-                .font(.title2)
-                .fontWeight(.semibold)
+                .font(.system(size: 14, weight: .semibold))
             
             HStack(spacing: 20) {
                 ForEach(AudioInputMode.allCases, id: \.self) { mode in
@@ -60,8 +39,7 @@ struct AudioInputSettingsView: View {
     private var systemDefaultSection: some View {
         VStack(alignment: .leading, spacing: 20) {
             Text("Current Device")
-                .font(.title2)
-                .fontWeight(.semibold)
+                .font(.system(size: 14, weight: .semibold))
 
             HStack {
                 Image(systemName: "display")
@@ -153,8 +131,7 @@ struct AudioInputSettingsView: View {
     private var availableDevicesContent: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Available Devices")
-                .font(.title2)
-                .fontWeight(.semibold)
+                .font(.system(size: 14, weight: .semibold))
             
             availableDevicesList
         }
@@ -284,27 +261,22 @@ struct InputModeCard: View {
     
     var body: some View {
         Button(action: action) {
-            VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 8) {
                 Image(systemName: icon)
-                    .font(.system(size: 28))
+                    .font(.system(size: 16))
                     .symbolRenderingMode(.hierarchical)
                     .foregroundStyle(isSelected ? .blue : .secondary)
-                
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(mode.rawValue)
-                        .font(.headline)
-                    
-                    Text(description)
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
+
+                Text(mode.rawValue)
+                    .font(.system(size: 13, weight: .medium))
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-            .padding()
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
             .background(CardBackground(isSelected: isSelected))
         }
         .buttonStyle(.plain)
+        .help(description)
     }
 }
 

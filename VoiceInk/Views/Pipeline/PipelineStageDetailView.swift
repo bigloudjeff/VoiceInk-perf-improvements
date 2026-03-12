@@ -7,32 +7,10 @@ struct PipelineStageDetailView: View {
 
  var body: some View {
   ScrollView {
-   VStack(alignment: .leading, spacing: 16) {
-    stageHeader
-    Divider()
+   VStack(alignment: .leading, spacing: 12) {
     stageContent
    }
-   .padding(20)
-  }
- }
-
- private var stageHeader: some View {
-  HStack(spacing: 12) {
-   ZStack {
-    Circle()
-     .fill(stage.color.opacity(0.15))
-     .frame(width: 40, height: 40)
-    Image(systemName: stage.icon)
-     .font(.system(size: 18))
-     .foregroundColor(stage.color)
-   }
-   VStack(alignment: .leading, spacing: 2) {
-    Text("Stage \(stage.rawValue): \(stage.title)")
-     .font(.system(size: 16, weight: .semibold))
-    Text(stage.description)
-     .font(.system(size: 13))
-     .foregroundColor(.secondary)
-   }
+   .padding(16)
   }
  }
 
@@ -327,10 +305,6 @@ private struct SpeechToTextStageContent: View {
 private struct OutputFiltersStageContent: View {
  var body: some View {
   VStack(alignment: .leading, spacing: 16) {
-   Text("Output filters clean up the raw transcription by removing unwanted artifacts before any further processing.")
-    .font(.system(size: 13))
-    .foregroundColor(.secondary)
-
    OutputFilterSettingsView()
    Divider()
    FillerWordsSettingsView()
@@ -348,10 +322,6 @@ private struct TextFormattingStageContent: View {
 
  var body: some View {
   VStack(alignment: .leading, spacing: 16) {
-   Text("Text formatting controls how the transcription text is capitalized and spaced.")
-    .font(.system(size: 13))
-    .foregroundColor(.secondary)
-
    HStack {
     Toggle(isOn: $textFormattingEnabled) {
      Text("Auto-capitalize and format text")
@@ -425,7 +395,6 @@ private struct AIEnhancementStageContent: View {
  var body: some View {
   VStack(alignment: .leading, spacing: 0) {
    EnhancementSettingsView()
-    .frame(minHeight: 500)
   }
  }
 }
@@ -441,10 +410,6 @@ private struct PasteOutputStageContent: View {
 
  var body: some View {
   VStack(alignment: .leading, spacing: 16) {
-   Text("Controls how the final text is delivered to the active application.")
-    .font(.system(size: 13))
-    .foregroundColor(.secondary)
-
    Form {
     Section {
      Picker(selection: $pasteMethod) {

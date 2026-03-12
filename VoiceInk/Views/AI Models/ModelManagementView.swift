@@ -41,9 +41,9 @@ struct ModelManagementView: View {
                 languageSelectionSection
                 availableModelsSection
             }
-            .padding(40)
+            .padding(16)
         }
-        .frame(minWidth: 600, minHeight: 500)
+        .frame(minHeight: 400)
         .background(Color(NSColor.controlBackgroundColor))
         .alert(isPresented: $isShowingDeleteAlert) {
             Alert(
@@ -56,18 +56,17 @@ struct ModelManagementView: View {
     }
     
     private var defaultModelSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        HStack {
             Text("Default Model")
-                .font(.headline)
+                .font(.system(size: 13))
                 .foregroundColor(.secondary)
             Text(whisperState.currentTranscriptionModel?.displayName ?? "No model selected")
-                .font(.title2)
-                .fontWeight(.bold)
+                .font(.system(size: 14, weight: .semibold))
+            Spacer()
         }
-        .padding()
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(12)
         .background(CardBackground(isSelected: false))
-        .cornerRadius(10)
+        .cornerRadius(8)
         .accessibilityIdentifier(AccessibilityID.Models.labelDefaultModel)
     }
     
