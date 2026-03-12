@@ -41,20 +41,14 @@ class AudioTranscriptionService: ObservableObject {
  let transcriptionStart = Date()
  var text = try await serviceRegistry.transcribe(audioURL: url, model: model)
  let transcriptionDuration = Date().timeIntervalSince(transcriptionStart)
- text = TranscriptionOutputFilter.filter(text)
- text = text.trimmingCharacters(in: .whitespacesAndNewlines)
+ let postResult = TranscriptionPostProcessor.process(text, modelContext: modelContext)
+ text = postResult.text
+ logger.notice(" Post-processed transcript")
 
  let powerModeManager = PowerModeManager.shared
  let activePowerModeConfig = powerModeManager.currentActiveConfiguration
  let powerModeName = (activePowerModeConfig?.isEnabled == true) ? activePowerModeConfig?.name : nil
  let powerModeEmoji = (activePowerModeConfig?.isEnabled == true) ? activePowerModeConfig?.emoji : nil
-
- if UserDefaults.standard.bool(forKey: UserDefaults.Keys.isTextFormattingEnabled) {
- text = WhisperTextFormatter.format(text)
- }
-
- text = WordReplacementService.shared.applyReplacements(to: text, using: modelContext)
- logger.notice(" Word replacements applied")
 
  let audioAsset = AVURLAsset(url: url)
  let duration = CMTimeGetSeconds(try await audioAsset.load(.duration))

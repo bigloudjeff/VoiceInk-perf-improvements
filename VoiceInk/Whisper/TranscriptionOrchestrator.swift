@@ -108,10 +108,9 @@ class TranscriptionOrchestrator {
     text = try await serviceRegistry.transcribe(audioURL: url, model: model)
    }
    logger.notice(" Transcript: \(text, privacy: .private)")
-   let rawTranscript = text
-   text = TranscriptionOutputFilter.filter(text)
-   let outputFilterApplied = (text != rawTranscript)
-   logger.notice(" Output filter result: \(text, privacy: .private)")
+   let postResult = TranscriptionPostProcessor.process(text, modelContext: modelContext)
+   text = postResult.text
+   logger.notice(" Post-processed: \(text, privacy: .private)")
    let transcriptionDuration = Date().timeIntervalSince(transcriptionStart)
 
    let powerModeManager = PowerModeManager.shared
@@ -120,16 +119,6 @@ class TranscriptionOrchestrator {
    let powerModeEmoji = (activePowerModeConfig?.isEnabled == true) ? activePowerModeConfig?.emoji : nil
 
    if await checkCancellationAndCleanup() { return }
-
-   text = text.trimmingCharacters(in: .whitespacesAndNewlines)
-
-   if UserDefaults.standard.bool(forKey: UserDefaults.Keys.isTextFormattingEnabled) {
-    text = WhisperTextFormatter.format(text)
-    logger.notice(" Formatted transcript: \(text, privacy: .private)")
-   }
-
-   text = WordReplacementService.shared.applyReplacements(to: text, using: modelContext)
-   logger.notice(" WordReplacement: \(text, privacy: .private)")
 
    let audioAsset = AVURLAsset(url: url)
    let actualDuration = (try? CMTimeGetSeconds(await audioAsset.load(.duration))) ?? 0.0
@@ -156,8 +145,8 @@ class TranscriptionOrchestrator {
    }
 
    // Forensic: raw transcript, output filter, filler words
-   transcription.rawTranscript = rawTranscript
-   transcription.outputFilterApplied = outputFilterApplied
+   transcription.rawTranscript = postResult.rawTranscript
+   transcription.outputFilterApplied = postResult.outputFilterApplied
    let fillerManager = FillerWordManager.shared
    transcription.fillerWordRemovalEnabled = fillerManager.isEnabled
    if fillerManager.isEnabled {

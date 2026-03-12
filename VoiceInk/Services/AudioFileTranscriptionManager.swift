@@ -84,19 +84,13 @@ class AudioTranscriptionManager: ObservableObject {
                 let transcriptionStart = Date()
                 var text = try await serviceRegistry.transcribe(audioURL: permanentURL, model: currentModel)
                 let transcriptionDuration = Date().timeIntervalSince(transcriptionStart)
-                text = TranscriptionOutputFilter.filter(text)
-                text = text.trimmingCharacters(in: .whitespacesAndNewlines)
+                let postResult = TranscriptionPostProcessor.process(text, modelContext: modelContext)
+                text = postResult.text
 
                 let powerModeManager = PowerModeManager.shared
                 let activePowerModeConfig = powerModeManager.currentActiveConfiguration
                 let powerModeName = (activePowerModeConfig?.isEnabled == true) ? activePowerModeConfig?.name : nil
                 let powerModeEmoji = (activePowerModeConfig?.isEnabled == true) ? activePowerModeConfig?.emoji : nil
-
-                if UserDefaults.standard.bool(forKey: UserDefaults.Keys.isTextFormattingEnabled) {
-                    text = WhisperTextFormatter.format(text)
-                }
-
-                text = WordReplacementService.shared.applyReplacements(to: text, using: modelContext)
                 
                 // Handle enhancement if enabled
                 if let enhancementService = whisperState.enhancementService,
