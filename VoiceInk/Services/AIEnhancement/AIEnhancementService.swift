@@ -450,10 +450,9 @@ class AIEnhancementService: ObservableObject {
         guard useScreenCaptureContext else { return }
         guard CGPreflightScreenCaptureAccess() else { return }
 
-        if let capturedText = await screenCaptureService.captureAndExtractText() {
-            await MainActor.run {
-                self.objectWillChange.send()
-            }
+        await screenCaptureService.captureAndExtractText()
+        await MainActor.run {
+            self.objectWillChange.send()
         }
     }
 

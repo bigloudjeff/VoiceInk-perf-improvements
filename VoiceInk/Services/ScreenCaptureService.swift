@@ -33,9 +33,7 @@ class ScreenCaptureService: ObservableObject {
         guard !isCapturing else { return nil }
 
         isCapturing = true
-        defer {
-            DispatchQueue.main.async { self.isCapturing = false }
-        }
+        defer { isCapturing = false }
 
         do {
             let content = try await SCShareableContent.excludingDesktopWindows(false, onScreenWindowsOnly: true)
