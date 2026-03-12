@@ -11,7 +11,8 @@ struct PromptFileManager {
  private static let logger = Logger(subsystem: "com.prakashjoshipax.voiceink", category: "PromptFileManager")
 
  private static let appSupportPromptsURL: URL = {
-  let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
+  let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
+   ?? FileManager.default.temporaryDirectory
   return appSupport.appendingPathComponent("com.prakashjoshipax.VoiceInk/Prompts", isDirectory: true)
  }()
 

@@ -425,8 +425,8 @@ class AIService: ObservableObject {
             await MainActor.run {
                 self.openRouterModels = models
                 self.saveOpenRouterModels()
-                if self.selectedProvider == .openRouter && self.currentModel == self.selectedProvider.defaultModel && !models.isEmpty {
-                    self.selectModel(models.first!)
+                if self.selectedProvider == .openRouter && self.currentModel == self.selectedProvider.defaultModel, let first = models.first {
+                    self.selectModel(first)
                 }
                 self.objectWillChange.send()
             }

@@ -160,7 +160,7 @@ class LastTranscriptionService: ObservableObject {
             do {
                 let newTranscription = try await transcriptionService.retranscribeAudio(from: audioURL, using: currentModel)
                 
-                let textToCopy = newTranscription.enhancedText?.isEmpty == false ? newTranscription.enhancedText! : newTranscription.text
+                let textToCopy = newTranscription.enhancedText.flatMap({ $0.isEmpty ? nil : $0 }) ?? newTranscription.text
                 ClipboardManager.copyToClipboard(textToCopy)
                 
                 NotificationManager.shared.showNotification(

@@ -16,9 +16,14 @@ enum EditableTextFieldChecker {
    return false
   }
 
+  guard CFGetTypeID(element as CFTypeRef) == AXUIElementGetTypeID() else {
+   return false
+  }
+  let axElement = element as! AXUIElement
+
   var roleValue: AnyObject?
   let roleResult = AXUIElementCopyAttributeValue(
-   element as! AXUIElement,
+   axElement,
    kAXRoleAttribute as CFString,
    &roleValue
   )
