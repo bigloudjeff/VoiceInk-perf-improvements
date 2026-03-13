@@ -33,7 +33,7 @@ class AIEnhancementService: ObservableObject {
             if enhancementMode != .off && selectedPromptId == nil {
                 selectedPromptId = customPrompts.first?.id
             }
-            NotificationCenter.default.post(name: .AppSettingsDidChange, object: nil)
+            NotificationCenter.default.post(name: .appSettingsDidChange, object: nil)
             NotificationCenter.default.post(name: .enhancementToggleChanged, object: nil)
         }
     }
@@ -46,14 +46,14 @@ class AIEnhancementService: ObservableObject {
     @Published var backgroundEnhancementEnabled: Bool {
         didSet {
             UserDefaults.standard.set(backgroundEnhancementEnabled, forKey: UserDefaults.Keys.backgroundEnhancementEnabled)
-            NotificationCenter.default.post(name: .AppSettingsDidChange, object: nil)
+            NotificationCenter.default.post(name: .appSettingsDidChange, object: nil)
         }
     }
 
     @Published var vocabularyExtractionEnabled: Bool {
         didSet {
             UserDefaults.standard.set(vocabularyExtractionEnabled, forKey: UserDefaults.Keys.vocabularyExtractionEnabled)
-            NotificationCenter.default.post(name: .AppSettingsDidChange, object: nil)
+            NotificationCenter.default.post(name: .appSettingsDidChange, object: nil)
         }
     }
 
@@ -72,7 +72,7 @@ class AIEnhancementService: ObservableObject {
     @Published var useScreenCaptureContext: Bool {
         didSet {
             UserDefaults.standard.set(useScreenCaptureContext, forKey: UserDefaults.Keys.useScreenCaptureContext)
-            NotificationCenter.default.post(name: .AppSettingsDidChange, object: nil)
+            NotificationCenter.default.post(name: .appSettingsDidChange, object: nil)
         }
     }
 
@@ -90,7 +90,7 @@ class AIEnhancementService: ObservableObject {
     @Published var selectedPromptId: UUID? {
         didSet {
             UserDefaults.standard.set(selectedPromptId?.uuidString, forKey: UserDefaults.Keys.selectedPromptId)
-            NotificationCenter.default.post(name: .AppSettingsDidChange, object: nil)
+            NotificationCenter.default.post(name: .appSettingsDidChange, object: nil)
             NotificationCenter.default.post(name: .promptSelectionChanged, object: nil)
         }
     }

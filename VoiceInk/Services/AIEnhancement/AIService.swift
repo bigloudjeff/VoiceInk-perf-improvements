@@ -193,7 +193,7 @@ class AIService: ObservableObject {
                     }
                 }
             }
-            NotificationCenter.default.post(name: .AppSettingsDidChange, object: nil)
+            NotificationCenter.default.post(name: .appSettingsDidChange, object: nil)
         }
     }
     
@@ -307,7 +307,7 @@ class AIService: ObservableObject {
         }
         
         objectWillChange.send()
-        NotificationCenter.default.post(name: .AppSettingsDidChange, object: nil)
+        NotificationCenter.default.post(name: .appSettingsDidChange, object: nil)
     }
     
     func saveAPIKey(_ key: String, completion: @escaping (Bool, String?) -> Void) {

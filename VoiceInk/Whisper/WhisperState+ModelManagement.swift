@@ -27,7 +27,7 @@ extension WhisperState {
         }
         // Post notification about the model change
         NotificationCenter.default.post(name: .didChangeModel, object: nil, userInfo: ["modelName": model.name])
-        NotificationCenter.default.post(name: .AppSettingsDidChange, object: nil)
+        NotificationCenter.default.post(name: .appSettingsDidChange, object: nil)
 
         // Pre-load the model in background so it's ready when recording starts
         if recordingState == .idle {

@@ -111,7 +111,7 @@ class PowerModeSessionManager {
             )
             saveSession(newSession)
 
-            NotificationCenter.default.addObserver(self, selector: #selector(updateSessionSnapshot), name: .AppSettingsDidChange, object: nil)
+            NotificationCenter.default.addObserver(self, selector: #selector(updateSessionSnapshot), name: .appSettingsDidChange, object: nil)
         }
 
         // Always apply the new configuration
@@ -131,7 +131,7 @@ class PowerModeSessionManager {
         await restoreState(session.originalState)
         isApplyingPowerModeConfig = false
         
-        NotificationCenter.default.removeObserver(self, name: .AppSettingsDidChange, object: nil)
+        NotificationCenter.default.removeObserver(self, name: .appSettingsDidChange, object: nil)
 
         clearSession()
     }
