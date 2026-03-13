@@ -7,6 +7,33 @@ enum ActivePopoverState {
  case power
 }
 
+/// Shared hover-dismiss logic for popover buttons.
+/// Shows the popover when either the button or popover is hovered,
+/// and schedules a delayed dismiss when both are unhovered.
+func syncPopoverVisibility(
+ isHoveringButton: Bool,
+ isHoveringPopover: Bool,
+ activePopover: Binding<ActivePopoverState>,
+ popoverType: ActivePopoverState,
+ dismissWorkItem: inout DispatchWorkItem?
+) {
+ let shouldShow = isHoveringButton || isHoveringPopover
+ if shouldShow {
+  dismissWorkItem?.cancel()
+  dismissWorkItem = nil
+  activePopover.wrappedValue = popoverType
+ } else {
+  dismissWorkItem?.cancel()
+  let work = DispatchWorkItem {
+   if activePopover.wrappedValue == popoverType {
+    activePopover.wrappedValue = .none
+   }
+  }
+  dismissWorkItem = work
+  DispatchQueue.main.asyncAfter(deadline: .now() + 0.25, execute: work)
+ }
+}
+
 // MARK: - Hover Interaction Manager
 @Observable
 class HoverInteraction {
@@ -218,21 +245,13 @@ struct RecorderPromptButton: View {
  }
 
  private func syncEnhancementPopoverVisibility() {
- let shouldShow = isHoveringEnhancement || isHoveringEnhancementPopover
- if shouldShow {
- enhancementDismissWorkItem?.cancel()
- enhancementDismissWorkItem = nil
- activePopover = .enhancement
- } else {
- enhancementDismissWorkItem?.cancel()
- let work = DispatchWorkItem { [activePopoverBinding = $activePopover] in
- if activePopoverBinding.wrappedValue == .enhancement {
- activePopoverBinding.wrappedValue = .none
- }
- }
- enhancementDismissWorkItem = work
- DispatchQueue.main.asyncAfter(deadline: .now() + 0.25, execute: work)
- }
+ syncPopoverVisibility(
+  isHoveringButton: isHoveringEnhancement,
+  isHoveringPopover: isHoveringEnhancementPopover,
+  activePopover: $activePopover,
+  popoverType: .enhancement,
+  dismissWorkItem: &enhancementDismissWorkItem
+ )
  }
 }
 
@@ -281,21 +300,13 @@ struct RecorderPowerModeButton: View {
  }
 
  private func syncPowerPopoverVisibility() {
- let shouldShow = isHoveringPower || isHoveringPowerPopover
- if shouldShow {
- powerDismissWorkItem?.cancel()
- powerDismissWorkItem = nil
- activePopover = .power
- } else {
- powerDismissWorkItem?.cancel()
- let work = DispatchWorkItem { [activePopoverBinding = $activePopover] in
- if activePopoverBinding.wrappedValue == .power {
- activePopoverBinding.wrappedValue = .none
- }
- }
- powerDismissWorkItem = work
- DispatchQueue.main.asyncAfter(deadline: .now() + 0.25, execute: work)
- }
+ syncPopoverVisibility(
+  isHoveringButton: isHoveringPower,
+  isHoveringPopover: isHoveringPowerPopover,
+  activePopover: $activePopover,
+  popoverType: .power,
+  dismissWorkItem: &powerDismissWorkItem
+ )
  }
 }
 
