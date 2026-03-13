@@ -190,6 +190,8 @@ class WhisperState: NSObject, ObservableObject, WhisperContextProvider {
  }
  
  deinit {
+ enhancementTask?.cancel()
+ activeTranscriptionTask?.cancel()
  NotificationCenter.default.removeObserver(self)
  }
  
