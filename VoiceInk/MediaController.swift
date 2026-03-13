@@ -1,20 +1,21 @@
 import Foundation
 import CoreAudio
 
-final class MediaController: ObservableObject {
+@Observable
+final class MediaController {
 
     static let shared = MediaController()
 
-    private var didMuteAudio = false
-    private var wasAudioMutedBeforeRecording = false
-    private var unmuteTask: Task<Void, Never>?
-    private var muteGeneration: Int = 0
+    @ObservationIgnored private var didMuteAudio = false
+    @ObservationIgnored private var wasAudioMutedBeforeRecording = false
+    @ObservationIgnored private var unmuteTask: Task<Void, Never>?
+    @ObservationIgnored private var muteGeneration: Int = 0
 
-    @Published var isSystemMuteEnabled: Bool = UserDefaults.standard.bool(forKey: UserDefaults.Keys.isSystemMuteEnabled) {
+    var isSystemMuteEnabled: Bool = UserDefaults.standard.bool(forKey: UserDefaults.Keys.isSystemMuteEnabled) {
         didSet { UserDefaults.standard.set(isSystemMuteEnabled, forKey: UserDefaults.Keys.isSystemMuteEnabled) }
     }
 
-    @Published var audioResumptionDelay: Double = UserDefaults.standard.double(forKey: UserDefaults.Keys.audioResumptionDelay) {
+    var audioResumptionDelay: Double = UserDefaults.standard.double(forKey: UserDefaults.Keys.audioResumptionDelay) {
         didSet { UserDefaults.standard.set(audioResumptionDelay, forKey: UserDefaults.Keys.audioResumptionDelay) }
     }
 

@@ -2,7 +2,7 @@ import SwiftUI
 import KeyboardShortcuts
 
 struct EnhancementShortcutsView: View {
-    @ObservedObject private var shortcutSettings = EnhancementShortcutSettings.shared
+    @Bindable private var shortcutSettings = EnhancementShortcutSettings.shared
 
     var body: some View {
         VStack(spacing: 8) {

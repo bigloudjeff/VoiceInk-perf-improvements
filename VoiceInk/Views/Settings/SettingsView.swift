@@ -11,8 +11,8 @@ struct SettingsView: View {
     @EnvironmentObject private var whisperState: WhisperState
     @EnvironmentObject private var enhancementService: AIEnhancementService
     @ObservedObject private var soundManager = SoundManager.shared
-    @ObservedObject private var mediaController = MediaController.shared
-    @ObservedObject private var playbackController = PlaybackController.shared
+    @Bindable private var mediaController = MediaController.shared
+    @Bindable private var playbackController = PlaybackController.shared
     @AppStorage(UserDefaults.Keys.hasCompletedOnboarding) private var hasCompletedOnboarding = true
     @AppStorage(UserDefaults.Keys.autoUpdateCheck) private var autoUpdateCheck = true
     @AppStorage(UserDefaults.Keys.enableAnnouncements) private var enableAnnouncements = true

@@ -41,8 +41,8 @@ private struct RecordingStageContent: View {
  @EnvironmentObject private var hotkeyManager: HotkeyManager
  @EnvironmentObject private var whisperState: WhisperState
  @ObservedObject private var soundManager = SoundManager.shared
- @ObservedObject private var mediaController = MediaController.shared
- @ObservedObject private var playbackController = PlaybackController.shared
+ @Bindable private var mediaController = MediaController.shared
+ @Bindable private var playbackController = PlaybackController.shared
 
  @State private var isCustomCancelEnabled = KeyboardShortcuts.getShortcut(for: .cancelRecorder) != nil
  @State private var isCustomCancelExpanded = false

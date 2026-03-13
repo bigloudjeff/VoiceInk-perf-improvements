@@ -3,16 +3,17 @@ import Combine
 import Foundation
 import SwiftUI
 import MediaRemoteAdapter
-class PlaybackController: ObservableObject {
+@Observable
+class PlaybackController {
     static let shared = PlaybackController()
-    private var mediaController: MediaRemoteAdapter.MediaController
-    private var wasPlayingWhenRecordingStarted = false
-    private var isMediaPlaying = false
-    private var lastKnownTrackInfo: TrackInfo?
-    private var originalMediaAppBundleId: String?
-    private var resumeTask: Task<Void, Never>?
+    @ObservationIgnored private var mediaController: MediaRemoteAdapter.MediaController
+    @ObservationIgnored private var wasPlayingWhenRecordingStarted = false
+    @ObservationIgnored private var isMediaPlaying = false
+    @ObservationIgnored private var lastKnownTrackInfo: TrackInfo?
+    @ObservationIgnored private var originalMediaAppBundleId: String?
+    @ObservationIgnored private var resumeTask: Task<Void, Never>?
 
-    @Published var isPauseMediaEnabled: Bool = UserDefaults.standard.bool(forKey: UserDefaults.Keys.isPauseMediaEnabled) {
+    var isPauseMediaEnabled: Bool = UserDefaults.standard.bool(forKey: UserDefaults.Keys.isPauseMediaEnabled) {
         didSet {
             UserDefaults.standard.set(isPauseMediaEnabled, forKey: UserDefaults.Keys.isPauseMediaEnabled)
 

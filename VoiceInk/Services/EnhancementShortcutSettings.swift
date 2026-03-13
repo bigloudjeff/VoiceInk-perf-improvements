@@ -1,10 +1,11 @@
 import Foundation
 import SwiftUI
 
-class EnhancementShortcutSettings: ObservableObject {
+@Observable
+class EnhancementShortcutSettings {
     static let shared = EnhancementShortcutSettings()
 
-    @Published var isToggleEnhancementShortcutEnabled: Bool {
+    var isToggleEnhancementShortcutEnabled: Bool {
         didSet {
             UserDefaults.standard.set(isToggleEnhancementShortcutEnabled, forKey: UserDefaults.Keys.isToggleEnhancementShortcutEnabled)
             NotificationCenter.default.post(name: .AppSettingsDidChange, object: nil)

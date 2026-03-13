@@ -8,8 +8,9 @@ enum ActivePopoverState {
 }
 
 // MARK: - Hover Interaction Manager
-class HoverInteraction: ObservableObject {
- @Published var isHovered: Bool = false
+@Observable
+class HoverInteraction {
+ var isHovered: Bool = false
 
  func setHover(on: Bool) {
  if on {

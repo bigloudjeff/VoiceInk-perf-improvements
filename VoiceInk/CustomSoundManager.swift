@@ -2,7 +2,8 @@ import Foundation
 import AVFoundation
 import SwiftUI
 
-class CustomSoundManager: ObservableObject {
+@Observable
+class CustomSoundManager {
     static let shared = CustomSoundManager()
 
     enum SoundType: String {
@@ -14,11 +15,11 @@ class CustomSoundManager: ObservableObject {
         var standardName: String { "Custom\(rawValue.capitalized)Sound" }
     }
 
-    @Published var isUsingCustomStartSound: Bool {
+    var isUsingCustomStartSound: Bool {
         didSet { UserDefaults.standard.set(isUsingCustomStartSound, forKey: SoundType.start.isUsingKey) }
     }
 
-    @Published var isUsingCustomStopSound: Bool {
+    var isUsingCustomStopSound: Bool {
         didSet { UserDefaults.standard.set(isUsingCustomStopSound, forKey: SoundType.stop.isUsingKey) }
     }
 

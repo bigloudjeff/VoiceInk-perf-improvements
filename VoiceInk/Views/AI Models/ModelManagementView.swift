@@ -19,7 +19,7 @@ struct ModelManagementView: View {
     @EnvironmentObject private var enhancementService: AIEnhancementService
     @Environment(\.modelContext) private var modelContext
     @StateObject private var whisperPrompt = WhisperPrompt()
-    @ObservedObject private var warmupCoordinator = WhisperModelWarmupCoordinator.shared
+    var warmupCoordinator = WhisperModelWarmupCoordinator.shared
 
     @State private var selectedFilter: ModelFilter = .recommended
     @State private var isShowingSettings = false
