@@ -32,6 +32,11 @@ class EnhancementQueueService {
     }
 
     func enqueue(_ job: BackgroundEnhancementJob) {
+        guard let aiService = aiService, let modelContainer = modelContainer else {
+            logger.error("EnhancementQueueService not configured")
+            return
+        }
+
         let shouldStart = state.withLock { state -> Bool in
             state.jobs.append(job)
             if !state.isProcessing {
@@ -43,12 +48,12 @@ class EnhancementQueueService {
 
         if shouldStart {
             Task.detached { [weak self] in
-                await self?.processQueue()
+                await self?.processQueue(aiService: aiService, modelContainer: modelContainer)
             }
         }
     }
 
-    private func processQueue() async {
+    private func processQueue(aiService: AIService, modelContainer: ModelContainer) async {
         while true {
             let nextJob = state.withLock { state -> BackgroundEnhancementJob? in
                 if state.jobs.isEmpty {
@@ -59,15 +64,11 @@ class EnhancementQueueService {
             }
 
             guard let job = nextJob else { return }
-            await processJob(job)
+            await processJob(job, aiService: aiService, modelContainer: modelContainer)
         }
     }
 
-    private func processJob(_ job: BackgroundEnhancementJob) async {
-        guard let aiService = aiService, let modelContainer = modelContainer else {
-            logger.error("EnhancementQueueService not configured")
-            return
-        }
+    private func processJob(_ job: BackgroundEnhancementJob, aiService: AIService, modelContainer: ModelContainer) async {
 
         logger.notice("Starting background enhancement for transcription \(job.transcriptionId.uuidString, privacy: .public)")
         let startTime = Date()
