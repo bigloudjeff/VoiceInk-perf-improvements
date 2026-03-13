@@ -91,7 +91,7 @@ struct OnboardingModelDownloadView: View {
                             if isDownloading {
                                 DownloadProgressView(
                                     modelName: turboModel?.name ?? "",
-                                    downloadProgress: whisperState.downloadProgress
+                                    downloadProgress: whisperState.modelDownloadProgress.downloadProgress
                                 )
                                 .transition(.opacity)
                             }

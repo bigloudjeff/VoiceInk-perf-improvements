@@ -130,9 +130,8 @@ class WhisperState: NSObject, ObservableObject, WhisperContextProvider {
  var licenseViewModel: LicenseViewModel
  let logger = Logger(subsystem: "com.prakashjoshipax.voiceink", category: "WhisperState")
  
- // For model progress tracking
- @Published var downloadProgress: [String: Double] = [:]
- @Published var parakeetDownloadStates: [String: Bool] = [:]
+ // For model progress tracking (isolated from @Published to avoid root-level view invalidation)
+ let modelDownloadProgress = ModelDownloadProgress()
  
  init(modelContext: ModelContext, enhancementService: AIEnhancementService? = nil, licenseViewModel: LicenseViewModel) {
  self.modelContext = modelContext

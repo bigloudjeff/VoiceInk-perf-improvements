@@ -71,7 +71,7 @@ extension WhisperState: LocalModelManagerDelegate {
  }
 
  func localModelManagerDidUpdateDownloadProgress(_ progress: [String: Double]) {
-  self.downloadProgress = progress
+  self.modelDownloadProgress.downloadProgress = progress
  }
 
  func localModelManagerDidUpdateModelLoaded(_ loaded: Bool) {

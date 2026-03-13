@@ -34,20 +34,21 @@ extension WhisperState {
 extension WhisperState: ParakeetModelManagerDelegate {
 
  func parakeetManagerDidUpdateDownloadStates(_ states: [String: Bool]) {
-  self.parakeetDownloadStates = states
+  // Download states tracked internally by ParakeetModelManager
  }
 
  func parakeetManagerSetDownloadProgress(key: String, value: Double) {
-  downloadProgress[key] = value
+  modelDownloadProgress[key] = value
  }
 
  func parakeetManagerRemoveDownloadProgress(key: String) {
-  downloadProgress.removeValue(forKey: key)
+  modelDownloadProgress.removeValue(forKey: key)
  }
 
  func parakeetManagerIncrementProgress(key: String, increment: Double, cap: Double) {
-  if let current = downloadProgress[key], current < cap {
-   downloadProgress[key] = current + increment
+  let current = modelDownloadProgress[key]
+  if current > 0 && current < cap {
+   modelDownloadProgress[key] = current + increment
   }
  }
 

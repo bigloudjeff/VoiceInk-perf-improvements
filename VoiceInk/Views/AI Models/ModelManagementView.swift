@@ -135,7 +135,7 @@ struct ModelManagementView: View {
                             whisperState: whisperState, 
                             isDownloaded: whisperState.availableModels.contains { $0.name == model.name },
                             isCurrent: whisperState.currentTranscriptionModel?.name == model.name,
-                            downloadProgress: whisperState.downloadProgress,
+                            downloadProgress: whisperState.modelDownloadProgress.downloadProgress,
                             modelURL: whisperState.availableModels.first { $0.name == model.name }?.url,
                             isWarming: isWarming,
                             deleteAction: {
