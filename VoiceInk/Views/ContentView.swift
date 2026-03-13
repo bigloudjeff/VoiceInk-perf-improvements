@@ -396,6 +396,8 @@ private struct PipelineSidebarItem: View {
                 .fill(isSelected ? Color.accentColor.opacity(0.1) : Color.clear)
         )
         .contentShape(Rectangle())
+        .accessibilityLabel("\(stage.title) pipeline stage")
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 }
 
