@@ -93,7 +93,13 @@ class LicenseViewModel: ObservableObject {
         }
     }
     
-    func openPurchaseLink() {
+    private func markLicensed(message: String = "License activated successfully!") {
+  licenseState = .licensed
+  validationMessage = message
+  NotificationCenter.default.post(name: .licenseStatusChanged, object: nil)
+ }
+
+ func openPurchaseLink() {
         if let url = URL(string: "https://tryvoiceink.com/buy") {
             NSWorkspace.shared.open(url)
         }
@@ -127,9 +133,7 @@ class LicenseViewModel: ObservableObject {
                     let isValid = try await polarService.validateLicenseKeyWithActivation(licenseKey, activationId: existingActivationId)
                     if isValid {
                         // Existing activation is valid
-                        licenseState = .licensed
-                        validationMessage = "License activated successfully!"
-                        NotificationCenter.default.post(name: .licenseStatusChanged, object: nil)
+                        markLicensed()
                         isValidating = false
                         return
                     }
@@ -152,17 +156,13 @@ class LicenseViewModel: ObservableObject {
                 userDefaults.activationsLimit = licenseCheck.activationsLimit ?? 0
 
                 // Update the license state for unlimited license
-                licenseState = .licensed
-                validationMessage = "License validated successfully!"
-                NotificationCenter.default.post(name: .licenseStatusChanged, object: nil)
+                markLicensed(message: "License validated successfully!")
                 isValidating = false
                 return
             }
             
             // Update the license state for activated license
-            licenseState = .licensed
-            validationMessage = "License activated successfully!"
-            NotificationCenter.default.post(name: .licenseStatusChanged, object: nil)
+            markLicensed()
             
         } catch LicenseError.activationLimitReached(let details) {
             validationMessage = "Activation limit reached: \(details)"
@@ -174,9 +174,7 @@ class LicenseViewModel: ObservableObject {
             self.activationsLimit = 0
             userDefaults.activationsLimit = 0
 
-            licenseState = .licensed
-            validationMessage = "License activated successfully!"
-            NotificationCenter.default.post(name: .licenseStatusChanged, object: nil)
+            markLicensed()
         } catch {
             validationMessage = error.localizedDescription
         }
