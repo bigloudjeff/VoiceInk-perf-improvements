@@ -6,12 +6,27 @@ import SwiftData
 enum VoiceInkURLHandler {
  private static let logger = Logger(subsystem: "com.prakashjoshipax.voiceink", category: "URLHandler")
 
+ /// UserDefaults key for the URL scheme auth token.
+ /// When set to a non-empty string, mutating URL actions require `?token=<value>`.
+ static let tokenKey = "urlSchemeAuthToken"
+
  static func handle(_ url: URL, container: ModelContainer) {
   guard url.scheme == "voiceink",
         let host = url.host else { return }
 
   let path = url.path.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
   let params = URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems ?? []
+
+  // Safe (read-only) actions skip auth
+  let isSafe = (host == "navigate") || (host == "status") ||
+               (host == "vocabulary" && path == "list") ||
+               (host == "replacement" && path == "list")
+
+  if !isSafe && !validateToken(params: params) {
+   notify("Unauthorized: invalid or missing token", type: .error)
+   logger.warning("URL scheme auth failed for \(host, privacy: .public)/\(path, privacy: .public)")
+   return
+  }
 
   switch host {
   case "vocabulary":
@@ -31,6 +46,21 @@ enum VoiceInkURLHandler {
   default:
    notify("Unknown command: \(host)", type: .error)
   }
+ }
+
+ /// Validates the `token` parameter against the stored auth token.
+ /// Returns true if no token is configured (opt-in security) or if token matches.
+ private static func validateToken(params: [URLQueryItem]) -> Bool {
+  let storedToken = UserDefaults.standard.string(forKey: tokenKey) ?? ""
+  guard !storedToken.isEmpty else { return true }
+  let providedToken = param("token", from: params) ?? ""
+  // Constant-time comparison to prevent timing attacks
+  guard storedToken.count == providedToken.count else { return false }
+  var match = true
+  for (a, b) in zip(storedToken.utf8, providedToken.utf8) {
+   match = match && (a == b)
+  }
+  return match
  }
 
  // MARK: - Vocabulary

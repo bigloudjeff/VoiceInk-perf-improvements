@@ -79,6 +79,9 @@ struct SettingsView: View {
                 Text("Control how VoiceInk handles your transcription data and audio recordings.")
             }
 
+            // MARK: - URL Scheme
+            URLSchemeAuthSection()
+
             // MARK: - Backup
             Section {
                 LabeledContent("Export Settings") {
@@ -262,6 +265,64 @@ struct PowerModeSection: View {
             }
         )
     }
+}
+
+// MARK: - URL Scheme Auth Section
+
+struct URLSchemeAuthSection: View {
+ @AppStorage(VoiceInkURLHandler.tokenKey) private var authToken = ""
+ @State private var showCopied = false
+
+ var body: some View {
+  Section {
+   if authToken.isEmpty {
+    HStack {
+     Text("No token set -- URL scheme is open to all apps")
+      .font(.system(size: 12))
+      .foregroundColor(.secondary)
+     Spacer()
+     Button("Generate Token") {
+      authToken = generateToken()
+     }
+    }
+   } else {
+    HStack {
+     Text(authToken)
+      .font(.system(size: 11, design: .monospaced))
+      .foregroundColor(.secondary)
+      .lineLimit(1)
+      .textSelection(.enabled)
+     Spacer()
+     Button(showCopied ? "Copied" : "Copy") {
+      NSPasteboard.general.clearContents()
+      NSPasteboard.general.setString(authToken, forType: .string)
+      showCopied = true
+      DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { showCopied = false }
+     }
+     .disabled(showCopied)
+     Button("Regenerate") {
+      authToken = generateToken()
+     }
+     Button("Remove") {
+      authToken = ""
+     }
+    }
+   }
+  } header: {
+   Text("URL Scheme Authentication")
+  } footer: {
+   Text("When set, mutating voiceink:// actions require ?token=<value>. Navigation and status remain open.")
+  }
+ }
+
+ private func generateToken() -> String {
+  var bytes = [UInt8](repeating: 0, count: 24)
+  _ = SecRandomCopyBytes(kSecRandomDefault, bytes.count, &bytes)
+  return Data(bytes).base64EncodedString()
+   .replacingOccurrences(of: "+", with: "-")
+   .replacingOccurrences(of: "/", with: "_")
+   .replacingOccurrences(of: "=", with: "")
+ }
 }
 
 // MARK: - Text Extension
