@@ -25,6 +25,15 @@ class TranscriptionOrchestrator {
  private let modelContext: ModelContext
  private let recorder: Recorder
  private let serviceRegistry: TranscriptionServiceRegistry
+ // MARK: - Timing Constants
+ private enum Timing {
+  static let stopSoundDelay: UInt64 = 200
+  static let pasteDelay: UInt64 = 50
+  static let autoSendDelay: UInt64 = 200
+  static let audioRestoreDefault: UInt64 = 150
+  static let audioRestoreAutoSend: UInt64 = 350
+ }
+
  private let enhancementService: AIEnhancementService?
  private let promptDetectionService: PromptDetectionService
  private let licenseViewModel: LicenseViewModel
@@ -77,7 +86,7 @@ class TranscriptionOrchestrator {
   Task {
    let isSystemMuteEnabled = UserDefaults.standard.bool(forKey: UserDefaults.Keys.isSystemMuteEnabled)
    if isSystemMuteEnabled {
-    try? await Task.sleep(for: .milliseconds(200))
+    try? await Task.sleep(for: .milliseconds(Timing.stopSoundDelay))
    }
    await MainActor.run {
     SoundManager.shared.playStopSound()
@@ -349,20 +358,20 @@ class TranscriptionOrchestrator {
    recorder.restoreAudio()
   } else {
    Task { @MainActor in
-    try? await Task.sleep(for: .milliseconds(50))
+    try? await Task.sleep(for: .milliseconds(Timing.pasteDelay))
     CursorPaster.pasteAtCursor(textToPaste + (CursorPaster.appendTrailingSpace ? " " : ""))
 
     if let activeConfig = self.powerModeProvider.currentActiveConfiguration, activeConfig.isAutoSendEnabled {
-     try? await Task.sleep(for: .milliseconds(200))
+     try? await Task.sleep(for: .milliseconds(Timing.autoSendDelay))
      CursorPaster.pressEnter()
     }
    }
 
    let audioRestoreDelay: UInt64
    if let activeConfig = powerModeProvider.currentActiveConfiguration, activeConfig.isAutoSendEnabled {
-    audioRestoreDelay = 350
+    audioRestoreDelay = Timing.audioRestoreAutoSend
    } else {
-    audioRestoreDelay = 150
+    audioRestoreDelay = Timing.audioRestoreDefault
    }
    Task { @MainActor [weak self] in
     try? await Task.sleep(for: .milliseconds(audioRestoreDelay))
