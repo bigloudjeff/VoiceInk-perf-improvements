@@ -7,19 +7,38 @@ class WordReplacementService: WordReplacing {
     private let logger = Logger(subsystem: "com.prakashjoshipax.voiceink", category: "WordReplacementService")
 
     private var cachedRegexes: [String: NSRegularExpression] = [:]
+    private var cachedReplacements: [WordReplacement]?
+    private var cacheModelContext: ModelContext?
 
-    private init() {}
+    private init() {
+        NotificationCenter.default.addObserver(
+            forName: .promptDidChange, object: nil, queue: .main
+        ) { [weak self] _ in
+            self?.invalidateCache()
+        }
+    }
 
     func invalidateCache() {
         cachedRegexes.removeAll()
+        cachedReplacements = nil
+        cacheModelContext = nil
     }
 
-    func applyReplacements(to text: String, using context: ModelContext) -> String {
+    private func fetchReplacements(from context: ModelContext) -> [WordReplacement] {
+        if let cached = cachedReplacements, cacheModelContext === context {
+            return cached
+        }
         let descriptor = FetchDescriptor<WordReplacement>(
             predicate: #Predicate { $0.isEnabled }
         )
+        let items = context.safeFetch(descriptor, context: "word replacements", logger: logger)
+        cachedReplacements = items
+        cacheModelContext = context
+        return items
+    }
 
-        let replacements = context.safeFetch(descriptor, context: "word replacements", logger: logger)
+    func applyReplacements(to text: String, using context: ModelContext) -> String {
+        let replacements = fetchReplacements(from: context)
         guard !replacements.isEmpty else {
             return text
         }

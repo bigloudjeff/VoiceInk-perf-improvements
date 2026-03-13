@@ -347,6 +347,7 @@ class ImportExportService {
                             }
                         }
                         try whisperState.modelContext.trySave(context: "import word replacements")
+                        WordReplacementService.shared.invalidateCache()
                         self.logger.notice("Successfully imported word replacements.")
                     } else {
                         self.logger.notice("No word replacements found in the imported file. Existing replacements remain unchanged.")

@@ -249,6 +249,7 @@ struct WordReplacementView: View {
 
         do {
             try modelContext.save()
+            WordReplacementService.shared.invalidateCache()
             originalWord = ""
             replacementWord = ""
         } catch {
@@ -264,6 +265,7 @@ struct WordReplacementView: View {
 
         do {
             try modelContext.save()
+            WordReplacementService.shared.invalidateCache()
         } catch {
             // Rollback the delete to restore UI consistency
             modelContext.rollback()

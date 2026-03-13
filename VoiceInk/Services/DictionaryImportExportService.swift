@@ -148,6 +148,8 @@ class DictionaryImportExportService {
 
                     // Save all changes
                     try context.save()
+                    WordReplacementService.shared.invalidateCache()
+                    CustomVocabularyService.shared.invalidateCache()
 
                     var message = "Dictionary data imported successfully from \(url.lastPathComponent).\n\n"
                     message += "Vocabulary Words: \(newWordsAdded) added, \(originalExistingCount) kept\n"
