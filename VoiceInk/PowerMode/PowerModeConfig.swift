@@ -333,10 +333,6 @@ class PowerModeManager: ObservableObject, PowerModeProviding {
             .trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
-    func cleanURL(_ url: String) -> String {
-        Self.cleanURL(url)
-    }
-
     func setActiveConfiguration(_ config: PowerModeConfig?) {
         activeConfiguration = config
         UserDefaults.standard.set(config?.id.uuidString, forKey: activeConfigIdKey)
