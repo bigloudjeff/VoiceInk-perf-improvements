@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct LicenseManagementView: View {
-    @StateObject private var licenseViewModel = LicenseViewModel()
+    @EnvironmentObject private var licenseViewModel: LicenseViewModel
     @Environment(\.colorScheme) private var colorScheme
     let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown"
     

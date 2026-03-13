@@ -28,6 +28,15 @@ class LicenseViewModel: ObservableObject {
         #endif
     }
 
+    /// Reload license state from persistent storage.
+    func refresh() {
+        #if LOCAL_BUILD
+        licenseState = .licensed
+        #else
+        loadLicenseState()
+        #endif
+    }
+
     func startTrial() {
         // Only set trial start date if it hasn't been set before
         if licenseManager.trialStartDate == nil {

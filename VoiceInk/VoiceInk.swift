@@ -17,6 +17,7 @@ struct VoiceInkApp: App {
     @StateObject private var menuBarManager: MenuBarManager
     @StateObject private var aiService = AIService()
     @StateObject private var enhancementService: AIEnhancementService
+    @StateObject private var licenseViewModel: LicenseViewModel
     @StateObject private var activeWindowService = ActiveWindowService.shared
     @AppStorage(UserDefaults.Keys.hasCompletedOnboarding) private var hasCompletedOnboarding = false
     @AppStorage(UserDefaults.Keys.enableAnnouncements) private var enableAnnouncements = true
@@ -78,8 +79,11 @@ struct VoiceInkApp: App {
         
         let enhancementService = AIEnhancementService(aiService: aiService, modelContext: container.mainContext)
         _enhancementService = StateObject(wrappedValue: enhancementService)
-        
-        let whisperState = WhisperState(modelContext: container.mainContext, enhancementService: enhancementService)
+
+        let licenseViewModel = LicenseViewModel()
+        _licenseViewModel = StateObject(wrappedValue: licenseViewModel)
+
+        let whisperState = WhisperState(modelContext: container.mainContext, enhancementService: enhancementService, licenseViewModel: licenseViewModel)
         _whisperState = StateObject(wrappedValue: whisperState)
         
         let hotkeyManager = HotkeyManager(whisperState: whisperState)
@@ -200,6 +204,7 @@ struct VoiceInkApp: App {
                     .environmentObject(menuBarManager)
                     .environmentObject(aiService)
                     .environmentObject(enhancementService)
+                    .environmentObject(licenseViewModel)
                     .modelContainer(container)
                     .onAppear {
                         // Migrate dictionary data from UserDefaults to SwiftData (one-time operation)

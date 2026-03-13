@@ -134,16 +134,16 @@ class WhisperState: NSObject, ObservableObject, WhisperContextProvider {
  @Published var downloadProgress: [String: Double] = [:]
  @Published var parakeetDownloadStates: [String: Bool] = [:]
  
- init(modelContext: ModelContext, enhancementService: AIEnhancementService? = nil) {
+ init(modelContext: ModelContext, enhancementService: AIEnhancementService? = nil, licenseViewModel: LicenseViewModel) {
  self.modelContext = modelContext
  let appSupportDirectory = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
  .appendingPathComponent("com.prakashjoshipax.VoiceInk")
- 
+
  self.modelsDirectory = appSupportDirectory.appendingPathComponent("WhisperModels")
  self.recordingsDirectory = appSupportDirectory.appendingPathComponent("Recordings")
- 
+
  self.enhancementService = enhancementService
- self.licenseViewModel = LicenseViewModel()
+ self.licenseViewModel = licenseViewModel
  
  super.init()
  

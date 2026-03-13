@@ -92,7 +92,7 @@ struct ContentView: View {
     @ObservedObject private var powerModeManager = PowerModeManager.shared
     @FocusState private var searchFieldFocused: Bool
     let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0"
-    @StateObject private var licenseViewModel = LicenseViewModel()
+    @EnvironmentObject private var licenseViewModel: LicenseViewModel
 
     private var guardedSelection: Binding<ViewType?> {
         Binding(
