@@ -28,6 +28,7 @@ class TranscriptionOrchestrator {
  private let enhancementService: AIEnhancementService?
  private let promptDetectionService: PromptDetectionService
  private let licenseViewModel: LicenseViewModel
+ private let powerModeProvider: PowerModeProviding
  private let logger: Logger
 
  weak var delegate: TranscriptionOrchestratorDelegate?
@@ -39,6 +40,7 @@ class TranscriptionOrchestrator {
   enhancementService: AIEnhancementService?,
   promptDetectionService: PromptDetectionService,
   licenseViewModel: LicenseViewModel,
+  powerModeProvider: PowerModeProviding,
   logger: Logger
  ) {
   self.modelContext = modelContext
@@ -47,6 +49,7 @@ class TranscriptionOrchestrator {
   self.enhancementService = enhancementService
   self.promptDetectionService = promptDetectionService
   self.licenseViewModel = licenseViewModel
+  self.powerModeProvider = powerModeProvider
   self.logger = logger
  }
 
@@ -183,8 +186,7 @@ class TranscriptionOrchestrator {
   audioDuration: Double,
   audioURL: URL
  ) async {
-  let powerModeManager = PowerModeManager.shared
-  let activePowerModeConfig = powerModeManager.currentActiveConfiguration
+  let activePowerModeConfig = powerModeProvider.currentActiveConfiguration
   let powerModeName = (activePowerModeConfig?.isEnabled == true) ? activePowerModeConfig?.name : nil
   let powerModeEmoji = (activePowerModeConfig?.isEnabled == true) ? activePowerModeConfig?.emoji : nil
 
@@ -350,15 +352,14 @@ class TranscriptionOrchestrator {
     try? await Task.sleep(for: .milliseconds(50))
     CursorPaster.pasteAtCursor(textToPaste + (CursorPaster.appendTrailingSpace ? " " : ""))
 
-    let powerMode = PowerModeManager.shared
-    if let activeConfig = powerMode.currentActiveConfiguration, activeConfig.isAutoSendEnabled {
+    if let activeConfig = self.powerModeProvider.currentActiveConfiguration, activeConfig.isAutoSendEnabled {
      try? await Task.sleep(for: .milliseconds(200))
      CursorPaster.pressEnter()
     }
    }
 
    let audioRestoreDelay: UInt64
-   if let activeConfig = PowerModeManager.shared.currentActiveConfiguration, activeConfig.isAutoSendEnabled {
+   if let activeConfig = powerModeProvider.currentActiveConfiguration, activeConfig.isAutoSendEnabled {
     audioRestoreDelay = 350
    } else {
     audioRestoreDelay = 150

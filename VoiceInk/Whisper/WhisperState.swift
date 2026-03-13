@@ -174,6 +174,7 @@ class WhisperState: NSObject, ObservableObject, WhisperContextProvider {
   enhancementService: self.enhancementService,
   promptDetectionService: self.promptDetectionService,
   licenseViewModel: self.licenseViewModel,
+  powerModeProvider: PowerModeManager.shared,
   logger: self.logger
  )
  self.transcriptionOrchestrator.delegate = self
