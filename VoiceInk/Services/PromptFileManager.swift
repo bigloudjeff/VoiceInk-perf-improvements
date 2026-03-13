@@ -66,8 +66,7 @@ struct PromptFileManager {
  /// Migrate legacy UserDefaults system instructions to file-based storage.
  /// Called once on app launch; no-ops if already migrated or nothing to migrate.
  static func migrateFromUserDefaults() {
-  let migrationKey = "promptFileManagerMigrationComplete"
-  guard !UserDefaults.standard.bool(forKey: migrationKey) else { return }
+  guard !UserDefaults.standard.bool(forKey: UserDefaults.Keys.promptFileMigrationCompleted) else { return }
 
   // Migrate custom system instructions
   if let saved = UserDefaults.standard.string(forKey: UserDefaults.Keys.systemInstructionsTemplate) {
@@ -76,7 +75,7 @@ struct PromptFileManager {
    logger.info("Migrated system instructions from UserDefaults to file")
   }
 
-  UserDefaults.standard.set(true, forKey: migrationKey)
+  UserDefaults.standard.set(true, forKey: UserDefaults.Keys.promptFileMigrationCompleted)
  }
 
  // MARK: - Private

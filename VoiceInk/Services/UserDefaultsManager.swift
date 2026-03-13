@@ -130,6 +130,7 @@ extension UserDefaults {
         static let licenseKeychainMigrationCompleted = "LicenseKeychainMigrationCompleted"
         static let apiKeyMigrationCompleted = "APIKeyMigrationToKeychainCompleted_v2"
         static let dictionaryMigrationCompleted = "HasMigratedDictionaryToSwiftData_v2"
+        static let promptFileMigrationCompleted = "promptFileManagerMigrationComplete"
         static let dictionaryItems = "CustomVocabularyItems"
         static let wordReplacements = "wordReplacements"
 
