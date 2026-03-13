@@ -62,4 +62,5 @@ extension Notification.Name {
     static let powerModeConfigurationsDidChange = Notification.Name("PowerModeConfigurationsDidChange")
     static let customSoundsChanged = Notification.Name("CustomSoundsChanged")
     static let powerModeConfigSaveRequested = Notification.Name("powerModeConfigSaveRequested")
+    static let enhancementShortcutSettingChanged = Notification.Name("enhancementShortcutSettingChanged")
 }

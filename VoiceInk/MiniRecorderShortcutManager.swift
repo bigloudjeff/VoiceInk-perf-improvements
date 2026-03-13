@@ -50,7 +50,7 @@ class MiniRecorderShortcutManager: ObservableObject {
         setupEscapeHandlerOnce()
         setupCancelHandlerOnce()
 
-        NotificationCenter.default.addObserver(self, selector: #selector(settingsDidChange), name: .AppSettingsDidChange, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(settingsDidChange), name: .enhancementShortcutSettingChanged, object: nil)
     }
     
     @objc private func settingsDidChange() {

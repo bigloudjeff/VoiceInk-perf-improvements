@@ -8,7 +8,7 @@ class EnhancementShortcutSettings {
     var isToggleEnhancementShortcutEnabled: Bool {
         didSet {
             UserDefaults.standard.set(isToggleEnhancementShortcutEnabled, forKey: UserDefaults.Keys.isToggleEnhancementShortcutEnabled)
-            NotificationCenter.default.post(name: .AppSettingsDidChange, object: nil)
+            NotificationCenter.default.post(name: .enhancementShortcutSettingChanged, object: nil)
         }
     }
 
