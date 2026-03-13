@@ -428,15 +428,16 @@ struct VocabularyDiffEngine {
  /// Checks if any word from the raw side overlaps with any word from
  /// the enhanced side (same word, shared stem, substring, or close phonetic match).
  private static func hasWordOverlap(raw: [Token], enhanced: [Token]) -> Bool {
-  for r in raw {
-   for e in enhanced {
+  // Pre-compute stems once per token to avoid O(n*m) stem calls
+  let rawStems = raw.map { Set(inflectionalStems($0.normalized)) }
+  let enhancedStems = enhanced.map { Set(inflectionalStems($0.normalized)) }
+
+  for (ri, r) in raw.enumerated() {
+   for (ei, e) in enhanced.enumerated() {
     if r.normalized == e.normalized { return true }
     if r.normalized.count >= 3 && e.normalized.contains(r.normalized) { return true }
     if e.normalized.count >= 3 && r.normalized.contains(e.normalized) { return true }
-    let rStems = Set(inflectionalStems(r.normalized))
-    let eStems = Set(inflectionalStems(e.normalized))
-    if !rStems.isDisjoint(with: eStems) { return true }
-    // Per-word phonetic similarity (tight threshold to avoid false positives)
+    if !rawStems[ri].isDisjoint(with: enhancedStems[ei]) { return true }
     if r.normalized.count >= 3 && e.normalized.count >= 3 {
      let dist = levenshteinDistance(r.normalized, e.normalized)
      let maxLen = max(r.normalized.count, e.normalized.count)
