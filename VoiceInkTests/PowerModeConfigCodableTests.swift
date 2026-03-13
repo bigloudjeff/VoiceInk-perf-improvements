@@ -79,10 +79,12 @@ struct PowerModeConfigCodableTests {
   #expect(decoded.urlConfigs == nil)
  }
 
- @Test func equalityByIdOnly() {
+ @Test func equalityComparesAllFields() {
   let id = UUID()
   let a = PowerModeConfig(id: id, name: "A", emoji: "1", isAIEnhancementEnabled: false)
   let b = PowerModeConfig(id: id, name: "B", emoji: "2", isAIEnhancementEnabled: true)
-  #expect(a == b)
+  let c = PowerModeConfig(id: id, name: "A", emoji: "1", isAIEnhancementEnabled: false)
+  #expect(a != b)
+  #expect(a == c)
  }
 }

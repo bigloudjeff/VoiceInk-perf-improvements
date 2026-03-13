@@ -28,4 +28,19 @@ struct ReasoningConfigTests {
  @Test func emptyStringReturnsNil() {
   #expect(ReasoningConfig.getReasoningParameter(for: "") == nil)
  }
+
+ // MARK: - requiresFixedTemperature
+
+ @Test func gpt5RequiresFixedTemperature() {
+  #expect(ReasoningConfig.requiresFixedTemperature("gpt-5.2") == true)
+  #expect(ReasoningConfig.requiresFixedTemperature("gpt-5.1") == true)
+  #expect(ReasoningConfig.requiresFixedTemperature("gpt-5-mini") == true)
+  #expect(ReasoningConfig.requiresFixedTemperature("gpt-5-nano") == true)
+ }
+
+ @Test func nonFixedTemperatureModels() {
+  #expect(ReasoningConfig.requiresFixedTemperature("gpt-4o") == false)
+  #expect(ReasoningConfig.requiresFixedTemperature("claude-3-opus") == false)
+  #expect(ReasoningConfig.requiresFixedTemperature("") == false)
+ }
 }
