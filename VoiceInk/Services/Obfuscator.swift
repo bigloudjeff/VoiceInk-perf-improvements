@@ -1,29 +1,33 @@
 import Foundation
 import IOKit
 
-/// Simple utility to obfuscate sensitive data stored in UserDefaults
+/// Utility to obfuscate data stored in UserDefaults using XOR with a device-specific key.
+/// Not cryptographically secure — intended to deter casual UserDefaults editing only.
 struct Obfuscator {
-    
-    /// Encodes a string using Base64 with a device-specific salt
+
+    /// Encodes a string by XOR-ing with a salt-derived key, then Base64 encoding.
     static func encode(_ string: String, salt: String) -> String {
-        let salted = salt + string + salt
-        let data = Data(salted.utf8)
-        return data.base64EncodedString()
+        let input = Array(string.utf8)
+        let key = Array(salt.utf8)
+        guard !key.isEmpty else { return Data(input).base64EncodedString() }
+        var output = [UInt8](repeating: 0, count: input.count)
+        for i in input.indices {
+            output[i] = input[i] ^ key[i % key.count]
+        }
+        return Data(output).base64EncodedString()
     }
-    
-    /// Decodes a Base64 string using a device-specific salt
+
+    /// Decodes a Base64+XOR string using the same salt.
     static func decode(_ base64: String, salt: String) -> String? {
-        guard let data = Data(base64Encoded: base64),
-              let salted = String(data: data, encoding: .utf8) else {
-            return nil
+        guard let data = Data(base64Encoded: base64) else { return nil }
+        let input = Array(data)
+        let key = Array(salt.utf8)
+        guard !key.isEmpty else { return String(bytes: input, encoding: .utf8) }
+        var output = [UInt8](repeating: 0, count: input.count)
+        for i in input.indices {
+            output[i] = input[i] ^ key[i % key.count]
         }
-        
-        // Remove the salt from both ends
-        guard salted.hasPrefix(salt), salted.hasSuffix(salt) else { 
-            return nil 
-        }
-        
-        return String(salted.dropFirst(salt.count).dropLast(salt.count))
+        return String(bytes: output, encoding: .utf8)
     }
     
     /// Gets a device-specific identifier to use as salt
