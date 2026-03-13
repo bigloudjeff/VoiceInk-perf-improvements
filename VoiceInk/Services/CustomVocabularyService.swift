@@ -7,8 +7,11 @@ class CustomVocabularyService {
     static let shared = CustomVocabularyService()
     private let logger = Logger(subsystem: "com.prakashjoshipax.voiceink", category: "CustomVocabularyService")
 
-    private var cachedItems: [VocabularyWord]?
-    private var cacheModelContext: ModelContext?
+    private struct Cache {
+        var items: [VocabularyWord]?
+        var modelContext: ModelContext?
+    }
+    private let cache = OSAllocatedUnfairLock(initialState: Cache())
 
     private init() {
         NotificationCenter.default.addObserver(
@@ -19,18 +22,27 @@ class CustomVocabularyService {
     }
 
     func invalidateCache() {
-        cachedItems = nil
-        cacheModelContext = nil
+        cache.withLock { state in
+            state.items = nil
+            state.modelContext = nil
+        }
     }
 
     private func fetchItems(from context: ModelContext) -> [VocabularyWord] {
-        if let cached = cachedItems, cacheModelContext === context {
-            return cached
+        let cached: [VocabularyWord]? = cache.withLock { state in
+            if let items = state.items, state.modelContext === context {
+                return items
+            }
+            return nil
         }
+        if let cached { return cached }
+
         let descriptor = FetchDescriptor<VocabularyWord>(sortBy: [SortDescriptor(\VocabularyWord.word)])
         let items = context.safeFetch(descriptor, context: "vocabulary cache", logger: logger)
-        cachedItems = items
-        cacheModelContext = context
+        cache.withLock { state in
+            state.items = items
+            state.modelContext = context
+        }
         return items
     }
 
