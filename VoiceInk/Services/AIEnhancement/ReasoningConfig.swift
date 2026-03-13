@@ -15,6 +15,18 @@ struct ReasoningConfig {
         "gpt-oss-120b"
     ]
 
+    /// Models that require temperature = 1.0 (don't support lower values).
+    static let fixedTemperatureModels: Set<String> = [
+        "gpt-5.2",
+        "gpt-5.1",
+        "gpt-5-mini",
+        "gpt-5-nano"
+    ]
+
+    static func requiresFixedTemperature(_ modelName: String) -> Bool {
+        fixedTemperatureModels.contains(modelName)
+    }
+
     static func getReasoningParameter(for modelName: String) -> String? {
         if geminiReasoningModels.contains(modelName) {
             return "low"
