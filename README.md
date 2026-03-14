@@ -16,6 +16,9 @@ All changes in this fork relative to the upstream repository, organized by area.
 - **3-second OCR timeout** -- prevents screen capture from stalling the entire pipeline on complex windows
 - **Model pre-loading on selection** -- transcription model loads in the background immediately when selected, eliminating 2-5s first-recording latency
 - **30-second model cleanup grace period** -- back-to-back transcriptions reuse the loaded model instead of repeatedly loading/unloading
+- **Core Audio background queue** -- offloads hardware setup to a serial background queue, eliminating hotkey lag on first recording (cherry-picked from upstream)
+- **OSAllocatedUnfairLock** -- replaced NSLock with `OSAllocatedUnfairLock` in `CoreAudioRecorder` for real-time audio callbacks
+- **Memory-efficient model downloads** -- model files move directly from temp to destination instead of loading entire binary into memory
 - **Cached word replacement regex** -- compiled patterns are cached instead of recompiled per replacement per transcription
 - **Pre-compiled AppleScript** -- paste script compiled once at class init, not on every paste
 - **Cached DateFormatter/ISO8601DateFormatter** -- formatter instances reused instead of recreated
@@ -49,7 +52,7 @@ All changes in this fork relative to the upstream repository, organized by area.
 
 - **Editable text field detection** -- uses Accessibility APIs to check `AXRole` before pasting; warns when no text field is focused
 - **Type-out mode** -- character-by-character typing via `CGEvent` for fields that block clipboard paste (password fields, some web forms)
-- **Input source management** -- temporarily switches to QWERTY for Cmd+V on non-QWERTY layouts, then restores
+- **AppleScript paste for non-QWERTY layouts** -- uses AppleScript `keystroke "v" using command down` instead of fragile Carbon input source switching (cherry-picked from upstream)
 
 ### Intelligent Vocabulary System
 
@@ -81,19 +84,38 @@ All changes in this fork relative to the upstream repository, organized by area.
 - **Single-entry export** -- export individual transcriptions
 - **Export-as-files** -- YAML metadata, markdown, and audio file export option
 
+### Transcription Quality
+
+- **Whisper hallucination rejection** -- two-layer protection against fabricated output when whisper has no real speech to transcribe:
+  - Prompt echo filter: detects when whisper echoes back its transcription prompt text on silence/short audio (exact match, substring, and >80% overlap detection)
+  - No-speech probability filter: uses whisper's per-segment `no_speech_prob` to reject segments with >60% silence probability, catching fabricated text like random phrases from noise
+
+### Security and Reliability
+
+- **XOR obfuscation** -- replaced plain Base64 encoding with XOR-keyed obfuscation for UserDefaults data
+- **Path traversal prevention** -- sanitized path components in `PromptFileManager` to block `../` and `/` injection
+- **API endpoint validation on import** -- custom model endpoints validated during settings import to reject invalid URLs
+- **Background enhancement failure notifications** -- failures post a `backgroundEnhancementFailed` notification instead of silently logging
+- **Audio file read error logging** -- actual error details logged when audio file reads fail during transcription
+- **Compound emoji validation** -- supports ZWJ sequences, variation selectors, and multi-scalar emoji (cherry-picked from upstream)
+
 ### Architecture and Code Quality
 
 - **WhisperState decomposition** -- extracted `TranscriptionOrchestrator`, `RecorderUICoordinator`, `ModelResourceManager`, `LocalModelManager`, `ParakeetModelManager` from the 1,480+ line god object
 - **Protocol-based dependency injection** -- `WhisperContextProvider`, `PowerModeProviding`, `NotificationPresenting`, `FillerWordProviding`, and 5 service protocols via `AppServiceLocator`
 - **Centralized UserDefaults keys** -- all keys in `UserDefaultsManager.swift` across ~30 files
 - **Centralized error handling** -- `safeSave`/`safeFetch`/`trySave` pattern with consistent logging
-- **Resolved all critical/high findings** -- from automated ideation audit (10 critical, 38 high)
-- **20 medium-priority findings addressed** -- across 4 fix batches
-- **Accessibility identifiers** -- centralized in `AccessibilityID.swift` for XCUITest automation
+- **RecorderStyle enum** -- replaced magic string literals `"mini"`/`"notch"` with type-safe enum
+- **Named timing constants** -- extracted hardcoded millisecond delays into `Timing` namespace
+- **Temperature heuristic model set** -- replaced fragile `gpt-5` prefix check with explicit `fixedTemperatureModels` set in `ReasoningConfig`
+- **Code deduplication** -- extracted `markLicensed()` helper in LicenseViewModel, shared hover-dismiss logic for popover buttons, static `cleanURL` in PowerModeManager
+- **Consistent notification naming** -- renamed `AppSettingsDidChange` to camelCase to match all other notification names
+- **Resolved all critical/high/medium findings** -- from automated ideation audit (10 critical, 38 high, 20 medium addressed)
+- **Accessibility** -- VoiceOver labels and selection traits on pipeline sidebar items; centralized identifiers in `AccessibilityID.swift`
 
 ### Testing
 
-- **100+ unit tests** added across:
+- **220+ unit tests** across:
   - `LLMPrewarmServiceTests` (18) -- provider detection, URL construction, inactivity threshold, guard behavior
   - `CustomVocabularyServiceTests` (21) -- add/remove/list with duplicate detection, case-insensitive matching, phonetic hints
   - `VoiceInkURLHandlerTests` (28+) -- URL scheme parsing for all route types with encoding validation
@@ -101,8 +123,10 @@ All changes in this fork relative to the upstream repository, organized by area.
   - `PowerModeManagerTests`, `PowerModeConfigCodableTests`, `PowerModeValidatorTests`, `PowerModeURLMatchingTests` -- Power Mode business logic
   - `VocabularyDiffEngineTests`, `PhoneticHintMiningServiceTests` -- vocabulary extraction and hint plausibility
   - `FillerWordRemovalTests`, `FillerWordManagerTests` -- filler word processing
-  - `WhisperTextFormatterTests`, `TranscriptionOutputFilterTests` -- output formatting
-  - `WordReplacementServiceTests`, `ReasoningConfigTests` -- additional business logic
+  - `WhisperTextFormatterTests`, `TranscriptionOutputFilterTests`, `TranscriptionOutputFilterIntegrationTests` -- output formatting
+  - `WordReplacementServiceTests`, `ReasoningConfigTests` -- business logic including `requiresFixedTemperature`
+  - `ObfuscatorTests` -- XOR encode/decode round-trip, wrong salt, unicode, edge cases
+  - `PromptDetectionServiceTests` -- trigger word detection and stripping
 
 ---
 
