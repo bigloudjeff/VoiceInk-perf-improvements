@@ -117,7 +117,7 @@ private struct RecordingStageContent: View {
    }
    .formStyle(.grouped)
    .scrollContentBackground(.hidden)
-   .frame(maxHeight: 200)
+   .fixedSize(horizontal: false, vertical: true)
 
    // Additional Shortcuts
    sectionLabel("Additional Shortcuts")
@@ -180,7 +180,7 @@ private struct RecordingStageContent: View {
    }
    .formStyle(.grouped)
    .scrollContentBackground(.hidden)
-   .frame(maxHeight: 350)
+   .fixedSize(horizontal: false, vertical: true)
 
    // Recording Feedback
    sectionLabel("Recording Feedback")
@@ -228,7 +228,7 @@ private struct RecordingStageContent: View {
    }
    .formStyle(.grouped)
    .scrollContentBackground(.hidden)
-   .frame(maxHeight: 250)
+   .fixedSize(horizontal: false, vertical: true)
 
    // Interface
    sectionLabel("Recorder Interface")
@@ -249,12 +249,11 @@ private struct RecordingStageContent: View {
    }
    .formStyle(.grouped)
    .scrollContentBackground(.hidden)
-   .frame(maxHeight: 120)
+   .fixedSize(horizontal: false, vertical: true)
 
    // Audio Input
    sectionLabel("Audio Input")
    AudioInputSettingsView()
-    .frame(maxHeight: 500)
   }
  }
 
@@ -464,7 +463,7 @@ private struct PasteOutputStageContent: View {
    }
    .formStyle(.grouped)
    .scrollContentBackground(.hidden)
-   .frame(maxHeight: 300)
+   .fixedSize(horizontal: false, vertical: true)
   }
  }
 }
