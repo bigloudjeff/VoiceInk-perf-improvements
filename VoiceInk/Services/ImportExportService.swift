@@ -125,7 +125,7 @@ class ImportExportService {
         let replacementsDescriptor = FetchDescriptor<WordReplacement>()
         let replacementItems = whisperState.modelContext.safeFetch(replacementsDescriptor, context: "export word replacements", logger: logger)
         if !replacementItems.isEmpty {
-            exportedWordReplacements = Dictionary(uniqueKeysWithValues: replacementItems.map { ($0.originalText, $0.replacementText) })
+            exportedWordReplacements = Dictionary(replacementItems.map { ($0.originalText, $0.replacementText) }, uniquingKeysWith: { _, last in last })
         }
 
         // Fetch transcription history from SwiftData
