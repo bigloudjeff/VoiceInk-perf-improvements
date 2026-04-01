@@ -27,6 +27,6 @@ class ModelResourceManager {
 
  func cleanupModelResources() async {
   await localModelManager.cleanupModelResources()
-  serviceRegistry.cleanup()
+  await serviceRegistry.cleanup()
  }
 }

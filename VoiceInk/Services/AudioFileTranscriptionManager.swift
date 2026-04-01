@@ -64,7 +64,7 @@ class AudioTranscriptionManager: ObservableObject {
 
     let serviceRegistry = TranscriptionServiceRegistry(contextProvider: whisperState, modelContext: modelContext, modelsDirectory: whisperState.modelsDirectory)
     defer {
-     serviceRegistry.cleanup()
+     Task { await serviceRegistry.cleanup() }
     }
 
     processingPhase = .processingAudio
