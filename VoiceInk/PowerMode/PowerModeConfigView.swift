@@ -37,7 +37,7 @@ struct ConfigurationView: View {
  // New state for context toggles
  @State private var useScreenCapture = false
  @State private var useClipboardContext = false
- @State private var isAutoSendEnabled = false
+ @State private var autoSendKey: AutoSendKey = .none
  @State private var isDefault = false
  @State private var systemInstructions: String? = nil
  
@@ -101,7 +101,7 @@ struct ConfigurationView: View {
  _configName = State(initialValue: "")
  _selectedEmoji = State(initialValue: "\u{2728}")
  _useScreenCapture = State(initialValue: false)
- _isAutoSendEnabled = State(initialValue: false)
+ _autoSendKey = State(initialValue: .none)
  _isDefault = State(initialValue: false)
  // Default to current global AI provider/model for new configurations - use UserDefaults only
  _selectedAIProvider = State(initialValue: UserDefaults.standard.string(forKey: UserDefaults.Keys.selectedAIProvider))
@@ -120,7 +120,7 @@ struct ConfigurationView: View {
  _websiteConfigs = State(initialValue: latestConfig.urlConfigs ?? [])
  _useScreenCapture = State(initialValue: latestConfig.useScreenCapture)
  _useClipboardContext = State(initialValue: latestConfig.useClipboardContext)
- _isAutoSendEnabled = State(initialValue: latestConfig.isAutoSendEnabled)
+ _autoSendKey = State(initialValue: latestConfig.autoSendKey)
  _isDefault = State(initialValue: latestConfig.isDefault)
  _selectedAIProvider = State(initialValue: latestConfig.selectedAIProvider)
  _selectedAIModel = State(initialValue: latestConfig.selectedAIModel)
@@ -187,7 +187,7 @@ struct ConfigurationView: View {
 
   PowerModeAdvancedSection(
    isDefault: $isDefault,
-   isAutoSendEnabled: $isAutoSendEnabled,
+   autoSendKey: $autoSendKey,
    powerModeConfigId: powerModeConfigId
   )
  }
@@ -277,7 +277,7 @@ struct ConfigurationView: View {
   selectedAIModel: selectedAIModel,
   useScreenCapture: useScreenCapture,
   useClipboardContext: useClipboardContext,
-  isAutoSendEnabled: isAutoSendEnabled,
+  autoSendKey: autoSendKey,
   isDefault: isDefault,
   appConfigCount: selectedAppConfigs.count,
   websiteConfigCount: websiteConfigs.count,
@@ -344,7 +344,7 @@ struct ConfigurationView: View {
  useClipboardContext: useClipboardContext,
  selectedAIProvider: selectedAIProvider,
  selectedAIModel: selectedAIModel,
- isAutoSendEnabled: isAutoSendEnabled,
+ autoSendKey: autoSendKey,
  systemInstructions: systemInstructions,
  isDefault: isDefault,
  hotkeyShortcut: hotkeyString
@@ -361,7 +361,7 @@ struct ConfigurationView: View {
  updatedConfig.urlConfigs = websiteConfigs.isEmpty ? nil : websiteConfigs
  updatedConfig.useScreenCapture = useScreenCapture
  updatedConfig.useClipboardContext = useClipboardContext
- updatedConfig.isAutoSendEnabled = isAutoSendEnabled
+ updatedConfig.autoSendKey = autoSendKey
  updatedConfig.selectedAIProvider = selectedAIProvider
  updatedConfig.selectedAIModel = selectedAIModel
  updatedConfig.systemInstructions = systemInstructions
@@ -475,7 +475,7 @@ private struct ChangeTracker: ViewModifier {
  let selectedAIModel: String?
  let useScreenCapture: Bool
  let useClipboardContext: Bool
- let isAutoSendEnabled: Bool
+ let autoSendKey: AutoSendKey
  let isDefault: Bool
  let appConfigCount: Int
  let websiteConfigCount: Int
@@ -497,6 +497,6 @@ private struct ChangeTracker: ViewModifier {
  }
 
  private var changeSignature: String {
-  "\(configName)|\(selectedEmoji)|\(isAIEnhancementEnabled)|\(selectedPromptId?.uuidString ?? "")|\(selectedTranscriptionModelName ?? "")|\(selectedLanguage ?? "")|\(selectedAIProvider ?? "")|\(selectedAIModel ?? "")|\(useScreenCapture)|\(useClipboardContext)|\(isAutoSendEnabled)|\(isDefault)|\(appConfigCount)|\(websiteConfigCount)|\(systemInstructions ?? "")"
+  "\(configName)|\(selectedEmoji)|\(isAIEnhancementEnabled)|\(selectedPromptId?.uuidString ?? "")|\(selectedTranscriptionModelName ?? "")|\(selectedLanguage ?? "")|\(selectedAIProvider ?? "")|\(selectedAIModel ?? "")|\(useScreenCapture)|\(useClipboardContext)|\(autoSendKey.rawValue)|\(isDefault)|\(appConfigCount)|\(websiteConfigCount)|\(systemInstructions ?? "")"
  }
 }

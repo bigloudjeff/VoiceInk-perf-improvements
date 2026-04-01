@@ -2,6 +2,26 @@ import Foundation
 import KeyboardShortcuts
 import os
 
+enum AutoSendKey: String, Codable, CaseIterable {
+ case none = "none"
+ case enter = "enter"
+ case shiftEnter = "shiftEnter"
+ case commandEnter = "commandEnter"
+
+ var displayName: String {
+  switch self {
+  case .none: return "None"
+  case .enter: return "Return"
+  case .shiftEnter: return "Shift + Return"
+  case .commandEnter: return "Command + Return"
+  }
+ }
+
+ var isEnabled: Bool {
+  self != .none
+ }
+}
+
 struct PowerModeConfig: Codable, Identifiable, Equatable {
     var id: UUID
     var name: String
@@ -16,14 +36,14 @@ struct PowerModeConfig: Codable, Identifiable, Equatable {
     var useClipboardContext: Bool
     var selectedAIProvider: String?
     var selectedAIModel: String?
-    var isAutoSendEnabled: Bool = false
+    var autoSendKey: AutoSendKey = .none
     var systemInstructions: String? = nil
     var isEnabled: Bool = true
     var isDefault: Bool = false
     var hotkeyShortcut: String? = nil
         
     enum CodingKeys: String, CodingKey {
-        case id, name, emoji, appConfigs, urlConfigs, isAIEnhancementEnabled, selectedPrompt, selectedLanguage, useScreenCapture, useClipboardContext, selectedAIProvider, selectedAIModel, isAutoSendEnabled, systemInstructions, isEnabled, isDefault, hotkeyShortcut
+        case id, name, emoji, appConfigs, urlConfigs, isAIEnhancementEnabled, selectedPrompt, selectedLanguage, useScreenCapture, useClipboardContext, selectedAIProvider, selectedAIModel, autoSendKey, isAutoSendEnabled, systemInstructions, isEnabled, isDefault, hotkeyShortcut
         case selectedWhisperModel
         case selectedTranscriptionModelName
     }
@@ -31,7 +51,7 @@ struct PowerModeConfig: Codable, Identifiable, Equatable {
     init(id: UUID = UUID(), name: String, emoji: String, appConfigs: [AppConfig]? = nil,
          urlConfigs: [URLConfig]? = nil, isAIEnhancementEnabled: Bool, selectedPrompt: String? = nil,
          selectedTranscriptionModelName: String? = nil, selectedLanguage: String? = nil, useScreenCapture: Bool = false, useClipboardContext: Bool = false,
-         selectedAIProvider: String? = nil, selectedAIModel: String? = nil, isAutoSendEnabled: Bool = false,
+         selectedAIProvider: String? = nil, selectedAIModel: String? = nil, autoSendKey: AutoSendKey = .none,
          systemInstructions: String? = nil, isEnabled: Bool = true, isDefault: Bool = false, hotkeyShortcut: String? = nil) {
         self.id = id
         self.name = name
@@ -42,7 +62,7 @@ struct PowerModeConfig: Codable, Identifiable, Equatable {
         self.selectedPrompt = selectedPrompt
         self.useScreenCapture = useScreenCapture
         self.useClipboardContext = useClipboardContext
-        self.isAutoSendEnabled = isAutoSendEnabled
+        self.autoSendKey = autoSendKey
         self.systemInstructions = systemInstructions
         self.selectedAIProvider = selectedAIProvider
         self.selectedAIModel = selectedAIModel
@@ -67,7 +87,15 @@ struct PowerModeConfig: Codable, Identifiable, Equatable {
         useClipboardContext = try container.decodeIfPresent(Bool.self, forKey: .useClipboardContext) ?? false
         selectedAIProvider = try container.decodeIfPresent(String.self, forKey: .selectedAIProvider)
         selectedAIModel = try container.decodeIfPresent(String.self, forKey: .selectedAIModel)
-        isAutoSendEnabled = try container.decodeIfPresent(Bool.self, forKey: .isAutoSendEnabled) ?? false
+        // Migrate from old isAutoSendEnabled bool to new autoSendKey enum
+        if let rawValue = try container.decodeIfPresent(String.self, forKey: .autoSendKey),
+           let key = AutoSendKey(rawValue: rawValue) {
+            autoSendKey = key
+        } else if let oldBool = try container.decodeIfPresent(Bool.self, forKey: .isAutoSendEnabled), oldBool {
+            autoSendKey = .enter
+        } else {
+            autoSendKey = .none
+        }
         systemInstructions = try container.decodeIfPresent(String.self, forKey: .systemInstructions)
         isEnabled = try container.decodeIfPresent(Bool.self, forKey: .isEnabled) ?? true
         isDefault = try container.decodeIfPresent(Bool.self, forKey: .isDefault) ?? false
@@ -96,7 +124,7 @@ struct PowerModeConfig: Codable, Identifiable, Equatable {
         try container.encode(useClipboardContext, forKey: .useClipboardContext)
         try container.encodeIfPresent(selectedAIProvider, forKey: .selectedAIProvider)
         try container.encodeIfPresent(selectedAIModel, forKey: .selectedAIModel)
-        try container.encode(isAutoSendEnabled, forKey: .isAutoSendEnabled)
+        try container.encode(autoSendKey, forKey: .autoSendKey)
         try container.encodeIfPresent(systemInstructions, forKey: .systemInstructions)
         try container.encodeIfPresent(selectedTranscriptionModelName, forKey: .selectedTranscriptionModelName)
         try container.encode(isEnabled, forKey: .isEnabled)

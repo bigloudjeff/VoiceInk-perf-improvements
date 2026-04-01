@@ -370,7 +370,7 @@ struct PowerModeAIEnhancementSection: View {
 
 struct PowerModeAdvancedSection: View {
  @Binding var isDefault: Bool
- @Binding var isAutoSendEnabled: Bool
+ @Binding var autoSendKey: AutoSendKey
  let powerModeConfigId: UUID
 
  var body: some View {
@@ -383,10 +383,14 @@ struct PowerModeAdvancedSection: View {
    }
    .accessibilityIdentifier(AccessibilityID.PowerModeConfig.toggleDefault)
 
-   Toggle(isOn: $isAutoSendEnabled) {
+   Picker(selection: $autoSendKey) {
+    ForEach(AutoSendKey.allCases, id: \.self) { key in
+     Text(key.displayName).tag(key)
+    }
+   } label: {
     HStack(spacing: 6) {
      Text("Auto Send")
-     InfoTip("Automatically presses the Return/Enter key after pasting text. Useful for chat applications or forms.")
+     InfoTip("Automatically presses a key after pasting text. Useful for chat apps (Shift+Return for newline) or forms (Return to submit).")
     }
    }
    .accessibilityIdentifier(AccessibilityID.PowerModeConfig.toggleAutoSend)

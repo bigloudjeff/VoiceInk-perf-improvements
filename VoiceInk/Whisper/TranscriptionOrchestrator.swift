@@ -29,7 +29,7 @@ class TranscriptionOrchestrator {
  private enum Timing {
   static let stopSoundDelay: UInt64 = 200
   static let pasteDelay: UInt64 = 50
-  static let autoSendDelay: UInt64 = 200
+  static let autoSendDelay: UInt64 = 500
   static let audioRestoreDefault: UInt64 = 150
   static let audioRestoreAutoSend: UInt64 = 350
  }
@@ -361,14 +361,14 @@ class TranscriptionOrchestrator {
     try? await Task.sleep(for: .milliseconds(Timing.pasteDelay))
     CursorPaster.pasteAtCursor(textToPaste + (CursorPaster.appendTrailingSpace ? " " : ""))
 
-    if let activeConfig = self.powerModeProvider.currentActiveConfiguration, activeConfig.isAutoSendEnabled {
+    if let activeConfig = self.powerModeProvider.currentActiveConfiguration, activeConfig.autoSendKey.isEnabled {
      try? await Task.sleep(for: .milliseconds(Timing.autoSendDelay))
-     CursorPaster.pressEnter()
+     CursorPaster.performAutoSend(activeConfig.autoSendKey)
     }
    }
 
    let audioRestoreDelay: UInt64
-   if let activeConfig = powerModeProvider.currentActiveConfiguration, activeConfig.isAutoSendEnabled {
+   if let activeConfig = powerModeProvider.currentActiveConfiguration, activeConfig.autoSendKey.isEnabled {
     audioRestoreDelay = Timing.audioRestoreAutoSend
    } else {
     audioRestoreDelay = Timing.audioRestoreDefault

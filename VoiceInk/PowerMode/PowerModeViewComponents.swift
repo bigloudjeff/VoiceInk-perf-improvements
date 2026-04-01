@@ -211,7 +211,7 @@ struct ConfigurationRow: View {
             .padding(.vertical, 12)
             .padding(.horizontal, 14)
             
-            if selectedModel != nil || selectedLanguage != nil || config.isAIEnhancementEnabled || config.isAutoSendEnabled {
+            if selectedModel != nil || selectedLanguage != nil || config.isAIEnhancementEnabled || config.autoSendKey.isEnabled {
                 Divider()
                 
                 HStack(spacing: 8) {
@@ -266,7 +266,7 @@ struct ConfigurationRow: View {
                         )
                     }
                     
-                    if config.isAutoSendEnabled {
+                    if config.autoSendKey.isEnabled {
                         HStack(spacing: 4) {
                             Image(systemName: "keyboard")
                                 .font(.system(size: 10))
